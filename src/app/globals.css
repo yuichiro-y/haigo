@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F5F6FA;
+  --foreground: #111827; /* 文字色1 */
+  --card: #FFFFFF;
+  --primary: #F97316; /* メインオレンジ */ 
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFF7ED;
+  --accent-foreground: #EA580C;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280; /* 文字色2 */
+  --border: #E5E7EB;
+  --input-background: #F3F4F6;
+  --destructive: #EF4444;
+  --ring: #F97316;
+  --chart-green: #22C55E;
+  --chart-blue: #3B82F6;
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #F5F6FA;
+    --foreground: #121723;
+  }
+}
+/* 
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+} */
