@@ -5,7 +5,7 @@ import { Mail, Lock, Eye, EyeOff, CircleCheck } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "../../_lib/supabase/client";
+import { supabase } from "@/app/_lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 type AuthMode = "signUp" | "login";
@@ -39,21 +39,24 @@ const authContent = {
   },
 };
 
-const syncAppUser = async (accessToken: string): Promise<boolean> => {
-  const response = await fetch("/api/users", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+const syncAppUser = async (accessToken: string) => {
+  try {  
+    const response = await fetch("/api/users", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-  const result = await response.json();
-  if (!response.ok) {
-    console.error("ユーザー登録に失敗しました:", result.message);
-    return false;
-  }
-  
-  return true;
+    if (!response.ok) {
+      return false;
+    }
+    
+    return true;
+    } catch (error) {
+      console.error("ユーザー登録に失敗しました:", error);
+      return false;
+    }
 };
 
 export const AuthForm = ({ mode }: AuthFormProps) => {
@@ -68,7 +71,12 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
     setError,
     clearErrors,
     formState:{ errors, isSubmitting },
-  } = useForm<AuthFormValues>();
+  } = useForm<AuthFormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
   const onSubmit = async (values: AuthFormValues) => {
     setSubmitSuccess("");
     clearErrors("root.auth");
@@ -79,7 +87,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
         password: values.password,
         options: {
           emailRedirectTo:
-            `${window.location.origin}/login`,
+            `${process.env.NEXT_PUBLIC_APP_URL}/login`,
         },        
       });
 
@@ -105,6 +113,11 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
       const syncSucceeded = await syncAppUser(accessToken);
 
       if (!syncSucceeded) {
+        setError("root.auth", {
+          type: "server",
+          message: "ユーザー情報の登録に失敗しました",
+        });
+        
         return;
       }
 
@@ -129,12 +142,18 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
       const accessToken = data.session?.access_token;
       if (!accessToken) {
         console.log("ログインセッションを取得できませんでした");
+        
         return;
       }
       
       const syncSucceeded = await syncAppUser(accessToken);
 
       if (!syncSucceeded) {
+        setError("root.auth", {
+          type: "server",
+          message: "ユーザー情報の登録に失敗しました",
+        });
+
         return;
       }
 
@@ -171,6 +190,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                 <input 
                   id="email"
                   type="email"
+                  disabled={isSubmitting}
                   {...register("email", {
                     required: "メールアドレスを入力してください",
                   })}
@@ -198,6 +218,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                   />
                   <input
                     id="password"
+                    disabled={isSubmitting}
                     type={showPassword ? "text" : "password"}
                     {...register("password", {
                       required: "パスワードを入力してください",
@@ -243,6 +264,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                         <input 
                           id="passwordConfirm"
                           type="password"
+                          disabled={isSubmitting}
                           {...register("passwordConfirm", {
                             required: "確認用パスワードを入力してください",
                             validate: (value) => 
@@ -307,7 +329,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="text-[#FFFFFF] bg-[#F97316] font-bold rounded-xl block w-full p-3 disabled:cursor-not-allowed disabled:opacity-50">
+            className="text-[#FFFFFF] bg-[#F97316] font-bold cursor-pointer rounded-xl block w-full p-3 disabled:cursor-not-allowed disabled:opacity-50">
             {isSubmitting ? "処理中..." : content.submitLabel}
           </button>
 
@@ -320,7 +342,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           <button
             type="button"
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white p-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white p-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Image
               src="/images/GoogleIcon.svg"

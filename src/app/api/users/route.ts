@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../_lib/prisma/prisma";
+import { prisma } from "@/app/_lib/prisma/prisma";
+import { supabase } from "@/app/_lib/supabase/client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,11 +10,6 @@ export async function POST(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.json({ message: "認証情報がありません" },{ status: 401 });
     }
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    );
 
     const {
       data: { user },
