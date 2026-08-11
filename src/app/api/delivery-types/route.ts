@@ -2,13 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAppUser } from "@/app/_lib/auth/getCurrentAppUser";
 import { prisma } from "@/app/_lib/prisma/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { z } from "zod";
-
-// 配送サイズ登録の受付入力を定義
-const createDeliveryTypeSchema = z.object({
-  name: z.string().trim().min(1).max(50),
-  currentUnitPrice: z.number().int().min(0),
-});
+import { createDeliveryTypeSchema } from "@/app/_lib/validation/deliveryType";
 
 const deliveryTypeSelect = {
   id: true,
@@ -30,16 +24,16 @@ export async function GET(request: NextRequest) {
         { status: 401 },
       );
     }
-    // 設定画面：非表示にしたサイズを再表示できるように全件取得
-    // 配送記録画面：使用中のサイズだけを取得する
-    const includeInactive =
-      request.nextUrl.searchParams.get("includeInactive") === "true";
+    // 「設定」ページ：非表示にしたサイズを再表示できるように全件取得
+    // 「今日の記録」ページ：使用中のサイズだけを取得する
+    const activeOnly =
+      request.nextUrl.searchParams.get("activeOnly") === "true";
 
     // ログインユーザーの配送サイズを表示順に取得する
     const deliveryTypes = await prisma.deliveryType.findMany({
       where: {
         userId: appUser.id,
-        ...(includeInactive ? {} : { isActive: true }),
+        ...(activeOnly ? { isActive: true } : {}),
       },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
       select: deliveryTypeSelect,
@@ -68,10 +62,11 @@ export async function POST(request: NextRequest) {
         { status: 401 },
       );
     }
-    // json格納
-    const body: unknown = await request.json().catch(() => null);
+
     // リクエスト本文の型と値を検証
-    const result = createDeliveryTypeSchema.safeParse(body);
+    const result = createDeliveryTypeSchema.safeParse(
+      await request.json(),
+    );
 
     if (!result.success) {
       return NextResponse.json(
@@ -95,7 +90,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const deliveryType = await prisma.deliveryType.create({
+    const createdDeliveryType = await prisma.deliveryType.create({
       data: {
         userId: appUser.id,
         name,
@@ -106,7 +101,7 @@ export async function POST(request: NextRequest) {
       select: deliveryTypeSelect,
     });
 
-    return NextResponse.json(deliveryType, { status: 201 });
+    return NextResponse.json(createdDeliveryType, { status: 201 });
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
