@@ -1,34 +1,27 @@
 "use client";
 
 import { supabase } from "@/app/_lib/supabase/client";
-
-export class ApiError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
-}
-
-export const authFetch = async <T>(
+// authFetchは、Supabaseのセッションを使用して認証付きのfetchリクエストを行う関数です。
+export const authFetch = async (
   input: RequestInfo | URL,
-  init: RequestInit = {}
+  init: RequestInit = {},
 ) => {
+  // Supabaseのセッションを取得する
   const {
     data: { session },
     error,
   } = await supabase.auth.getSession();
-
+  // セッションが取得できない場合はエラーを投げる
   if (error || !session?.access_token) {
-    throw new ApiError("ログインが必要です", 401);
+    throw new Error("ログインが必要です");
   }
 
+  // AuthorizationヘッダーにBearerトークンを設定する
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${session.access_token}`);
 
-  if (init.body && !headers.has("Content-Type")) {
+  // リクエストボディが文字列で、Content-Typeが設定されていない場合は、Content-Typeをapplication/jsonに設定する
+  if (typeof init.body === "string" && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -37,25 +30,20 @@ export const authFetch = async <T>(
     headers,
   });
 
-  let body: unknown = null;
-
-  try {
-    body = await response.json();
-  } catch {
-    // JSONを返さないエラーでも、HTTPステータスを使って処理を続ける。
-  }
-
   if (!response.ok) {
-    const message =
-      body &&
-      typeof body === "object" &&
-      "message" in body &&
-      typeof body.message === "string"
-        ? body.message
-        : "通信に失敗しました";
+    const body = await response.json();
+    // エラーレスポンスの形式が想定と異なる場合は、汎用的なエラーを投げる
+    if (
+      !body ||
+      typeof body !== "object" ||
+      !("message" in body) ||
+      typeof body.message !== "string"
+    ) {
+      throw new Error("通信に失敗しました");
+    }
 
-    throw new ApiError(message, response.status);
+    throw new Error(body.message);
   }
 
-  return body as T;
+  return response;
 };
