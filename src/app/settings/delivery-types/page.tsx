@@ -5,304 +5,92 @@ import {
   ChevronDown,
   CircleAlert,
   CircleCheck,
-  Eye,
-  EyeOff,
-  Pencil,
   Plus,
-  X,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import useSWR from "swr";
+import {
+  deliveryTypesSchema,
+  type DeliveryType,
+  type CreateDeliveryTypeInput,
+  type UpdateDeliveryTypeInput,
+} from "@/app/_lib/validation/deliveryType";
+import { DeliveryTypeModal } from "@/app/_components/Modal/DeliveryTypeModal";
+import { DeliveryTypeRow } from "@/app/_components/DeliveryType/DeliveryTypeRow";
 
-type DeliveryType = {
-  id: string;
-  name: string;
-  currentUnitPrice: number;
-  sortOrder: number;
-  isActive: boolean;
-};
+// 配送サイズ一覧取得用のURLを定義
+const deliveryTypesUrl = "/api/delivery-types";
 
-type DeliveryTypeUpdate = {
-  name?: string;
-  currentUnitPrice?: number;
-  sortOrder?: number;
-  isActive?: boolean;
-};
-
-type EditorValues = {
-  name: string;
-  currentUnitPrice: number;
-};
-
-type DeliveryTypeModalProps = {
-  title: string;
-  submitLabel: string;
-  initialValues?: EditorValues;
-  isSaving: boolean;
-  onClose: () => void;
-  onSubmit: (values: EditorValues) => Promise<boolean>;
-};
-
-const deliveryTypesUrl = "/api/delivery-types?includeInactive=true";
-
-const fetchDeliveryTypes = (url: string) =>
-  authFetch<DeliveryType[]>(url);
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "処理に失敗しました";
-
-const DeliveryTypeModal = ({
-  title,
-  submitLabel,
-  initialValues,
-  isSaving,
-  onClose,
-  onSubmit,
-}: DeliveryTypeModalProps) => {
-  const [name, setName] = useState(initialValues?.name ?? "");
-  const [currentUnitPrice, setCurrentUnitPrice] = useState(
-    initialValues ? String(initialValues.currentUnitPrice) : ""
+// 配送サイズ一覧を取得する関数を定義
+const fetchDeliveryTypes = async (url: string) => {
+  const response = await authFetch(url);
+  const result = deliveryTypesSchema.safeParse(
+    await response.json(),
   );
-  const [validationError, setValidationError] = useState("");
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  if (!result.success) {
+    throw new Error("配送サイズ一覧の取得に失敗しました");
+  }
 
-    const unitPriceNumber = Number(currentUnitPrice);
-
-    if (
-      name.trim() === "" ||
-      name.trim().length > 50 ||
-      currentUnitPrice === "" ||
-      !Number.isInteger(unitPriceNumber) ||
-      unitPriceNumber < 0
-    ) {
-      setValidationError("サイズ名と単価を正しく入力してください");
-      return;
-    }
-
-    setValidationError("");
-
-    const succeeded = await onSubmit({
-      name: name.trim(),
-      currentUnitPrice: unitPriceNumber,
-    });
-
-    if (succeeded) {
-      onClose();
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4 py-8"
-      role="presentation"
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delivery-type-modal-title"
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-      >
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 id="delivery-type-modal-title" className="text-lg font-extrabold">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            aria-label="閉じる"
-            className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground disabled:opacity-50"
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block text-sm font-bold">
-            サイズ名
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={50}
-              placeholder="例：60サイズ"
-              disabled={isSaving}
-              autoFocus
-              className="mt-2 block w-full rounded-xl border-0 bg-input-background px-4 py-3 text-base font-normal outline-none ring-1 ring-transparent transition focus:ring-primary disabled:opacity-50 md:text-sm"
-            />
-          </label>
-
-          <label className="block text-sm font-bold">
-            1件あたりの単価
-            <div className="mt-2 flex items-center rounded-xl bg-input-background px-4 ring-1 ring-transparent transition focus-within:ring-primary">
-              <span className="text-sm text-muted-foreground">¥</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="numeric"
-                value={currentUnitPrice}
-                onChange={(event) => setCurrentUnitPrice(event.target.value)}
-                placeholder="185"
-                disabled={isSaving}
-                className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base font-normal outline-none disabled:opacity-50 md:text-sm"
-              />
-              <span className="text-sm text-muted-foreground">/ 件</span>
-            </div>
-          </label>
-
-          {validationError && (
-            <p role="alert" className="text-sm text-destructive">
-              {validationError}
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSaving}
-              className="rounded-xl border border-border bg-white px-4 py-3 text-sm font-bold disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSaving ? "保存中..." : submitLabel}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  );
+  return result.data;
 };
 
-type DeliveryTypeRowProps = {
-  deliveryType: DeliveryType;
-  isSaving: boolean;
-  onEdit: (deliveryType: DeliveryType) => void;
-  onToggle: (deliveryType: DeliveryType) => Promise<void>;
-};
-
-const DeliveryTypeRow = ({
-  deliveryType,
-  isSaving,
-  onEdit,
-  onToggle,
-}: DeliveryTypeRowProps) => (
-  <li className={deliveryType.isActive ? "" : "bg-muted/45"}>
-    <div className="flex min-h-20 items-center gap-3 px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-bold">{deliveryType.name}</p>
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              deliveryType.isActive
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-500"
-            }`}
-          >
-            {deliveryType.isActive ? "使用中" : "非表示"}
-          </span>
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          ¥{deliveryType.currentUnitPrice.toLocaleString("ja-JP")} / 件
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onToggle(deliveryType)}
-          disabled={isSaving}
-          aria-label={deliveryType.isActive ? "非表示にする" : "再表示する"}
-          className={`flex size-9 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${
-            deliveryType.isActive
-              ? "bg-muted text-muted-foreground"
-              : "border border-primary bg-white text-primary"
-          }`}
-        >
-          {deliveryType.isActive ? (
-            <EyeOff size={16} aria-hidden="true" />
-          ) : (
-            <Eye size={16} aria-hidden="true" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => onEdit(deliveryType)}
-          disabled={isSaving}
-          aria-label={`${deliveryType.name}を編集`}
-          className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Pencil size={16} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  </li>
-);
-
+// 配送サイズ設定ページのコンポーネントを定義
 export default function DeliveryTypesSettingsPage() {
   const { data, error, isLoading, mutate } = useSWR<DeliveryType[]>(
     deliveryTypesUrl,
     fetchDeliveryTypes
-  );
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  );  // 配送サイズ一覧を取得するSWRフックを使用
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 配送サイズ追加モーダルの表示状態を管理
   const [editingDeliveryType, setEditingDeliveryType] =
-    useState<DeliveryType | null>(null);
-  const [showInactive, setShowInactive] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [actionError, setActionError] = useState("");
-  const [actionMessage, setActionMessage] = useState("");
+    useState<DeliveryType | null>(null); // 配送サイズ編集モーダルの表示状態を管理
+  const [showInactive, setShowInactive] = useState(false); // 非表示の配送サイズを表示するかどうかを管理
+  const [savingId, setSavingId] = useState<string | null>(null); // 配送サイズの保存中のIDを管理
+  const [isCreating, setIsCreating] = useState(false); // 配送サイズ追加中の状態を管理
+  const [actionError, setActionError] = useState(""); // 配送サイズ追加・編集のアクションエラーを管理
+  const [actionMessage, setActionMessage] = useState(""); // 配送サイズ追加・編集のアクションメッセージを管理
 
-  const activeDeliveryTypes = data?.filter((item) => item.isActive) ?? [];
-  const inactiveDeliveryTypes = data?.filter((item) => !item.isActive) ?? [];
+  const activeDeliveryTypes = data?.filter((item) => item.isActive) ?? []; // 表示中の配送サイズ一覧を取得
+  const inactiveDeliveryTypes = data?.filter((item) => !item.isActive) ?? []; // 非表示の配送サイズ一覧を取得
 
+  // アクションメッセージとエラーをクリアする関数を定義
   const clearActionMessage = () => {
     setActionError("");
     setActionMessage("");
   };
 
-  const handleCreate = async (values: EditorValues) => {
+  // 配送サイズ追加の処理を定義
+  const handleCreate = async (values: CreateDeliveryTypeInput) => {
     setIsCreating(true);
     clearActionMessage();
 
-    const nextSortOrder =
-      data && data.length > 0
-        ? Math.max(...data.map((item) => item.sortOrder)) + 1
-        : 1;
-
     try {
-      await authFetch<DeliveryType>("/api/delivery-types", {
+      await authFetch("/api/delivery-types", {
         method: "POST",
-        body: JSON.stringify({
-          ...values,
-          sortOrder: nextSortOrder,
-        }),
+        body: JSON.stringify(values),
       });
 
       setActionMessage("配送サイズを追加しました");
       await mutate();
       return true;
     } catch (createError) {
-      setActionError(getErrorMessage(createError));
+      setActionError(
+        createError instanceof Error
+          ? createError.message
+          : "配送サイズの追加に失敗しました"
+      );
       return false;
     } finally {
       setIsCreating(false);
     }
   };
-
-  const handleUpdate = async (id: string, values: DeliveryTypeUpdate) => {
+  // 配送サイズ更新の処理を定義
+  const handleUpdate = async (id: string, values: UpdateDeliveryTypeInput) => {
     setSavingId(id);
     clearActionMessage();
 
     try {
-      await authFetch<DeliveryType>(`/api/delivery-types/${id}`, {
+      await authFetch(`/api/delivery-types/${id}`, {
         method: "PATCH",
         body: JSON.stringify(values),
       });
@@ -317,13 +105,18 @@ export default function DeliveryTypesSettingsPage() {
       await mutate();
       return true;
     } catch (updateError) {
-      setActionError(getErrorMessage(updateError));
+      setActionError(
+        updateError instanceof Error
+          ? updateError.message
+          : "配送サイズの更新に失敗しました"
+      );
       return false;
     } finally {
       setSavingId(null);
     }
   };
 
+  // 配送サイズの表示状態を切り替える処理を定義
   const handleToggle = async (deliveryType: DeliveryType) => {
     await handleUpdate(deliveryType.id, {
       isActive: !deliveryType.isActive,
@@ -337,6 +130,7 @@ export default function DeliveryTypesSettingsPage() {
           <h1 className="text-2xl font-extrabold">設定</h1>
         </header>
 
+        {/* 配送サイズ・単価設定 */}
         <section aria-labelledby="delivery-type-settings-heading">
           <p className="mb-2 text-xs font-bold text-muted-foreground">
             配送サイズ・単価設定
@@ -364,7 +158,9 @@ export default function DeliveryTypesSettingsPage() {
                 className="flex items-center gap-2 px-4 py-5 text-sm text-destructive"
               >
                 <CircleAlert size={18} aria-hidden="true" />
-                {getErrorMessage(error)}
+                {error instanceof Error
+                  ? error.message
+                  : "配送サイズの取得に失敗しました"}
               </p>
             )}
 
@@ -374,6 +170,7 @@ export default function DeliveryTypesSettingsPage() {
               </p>
             )}
 
+            {/* 配送サイズ一覧 */}
             {activeDeliveryTypes.length > 0 && (
               <ul className="divide-y divide-border">
                 {activeDeliveryTypes.map((deliveryType) => (
@@ -388,6 +185,7 @@ export default function DeliveryTypesSettingsPage() {
               </ul>
             )}
 
+            {/* 非表示の配送サイズ */}
             {inactiveDeliveryTypes.length > 0 && (
               <div className="border-t border-border">
                 <button
@@ -406,6 +204,7 @@ export default function DeliveryTypesSettingsPage() {
                   />
                 </button>
 
+                {/* 非表示の配送サイズ */}
                 {showInactive && (
                   <ul className="divide-y divide-border border-t border-border">
                     {inactiveDeliveryTypes.map((deliveryType) => (
@@ -422,6 +221,7 @@ export default function DeliveryTypesSettingsPage() {
               </div>
             )}
 
+            {/* 配送サイズ追加ボタン */}
             <button
               type="button"
               onClick={() => {
@@ -438,8 +238,10 @@ export default function DeliveryTypesSettingsPage() {
           </div>
         </section>
 
+        {/* どちらかに文字が入っていれば表示する。 */}
         {(actionError || actionMessage) && (
           <div
+          // エラーがある場合はalert、メッセージのみの場合はstatusとして扱う
             role={actionError ? "alert" : "status"}
             className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold ${
               actionError
@@ -457,6 +259,7 @@ export default function DeliveryTypesSettingsPage() {
         )}
       </div>
 
+      {/* 配送サイズ追加・編集モーダル */}
       {isAddModalOpen && (
         <DeliveryTypeModal
           key="add-delivery-type"
@@ -468,6 +271,7 @@ export default function DeliveryTypesSettingsPage() {
         />
       )}
 
+      {/* 配送サイズ編集モーダル */}
       {editingDeliveryType && (
         <DeliveryTypeModal
           key={editingDeliveryType.id}
