@@ -16,9 +16,7 @@ export const createDeliveryTypeSchema = z.object({
 });
 
 // 配送サイズ登録の受付入力を定義
-export type CreateDeliveryTypeInput = z.infer<
-  typeof createDeliveryTypeSchema
->;
+export type CreateDeliveryTypeInput = z.infer<typeof createDeliveryTypeSchema>;
 
 // 配送サイズ更新の受付入力を定義
 export const updateDeliveryTypeSchema = createDeliveryTypeSchema
@@ -33,9 +31,7 @@ export const updateDeliveryTypeSchema = createDeliveryTypeSchema
   });
 
 // 配送サイズ更新の受付入力を定義
-export type UpdateDeliveryTypeInput = z.infer<
-  typeof updateDeliveryTypeSchema
->;
+export type UpdateDeliveryTypeInput = z.infer<typeof updateDeliveryTypeSchema>;
 
 // 配送サイズの型を定義
 export const deliveryTypeSchema = createDeliveryTypeSchema.extend({

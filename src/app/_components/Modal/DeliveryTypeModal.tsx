@@ -6,29 +6,25 @@ import {
   type CreateDeliveryTypeInput,
 } from "@/app/_lib/validation/deliveryType";
 
-type DeliveryTypeModalProps = {
+type Props = {
   title: string;
   submitLabel: string;
   initialValues?: CreateDeliveryTypeInput;
-  isSaving: boolean;
   onClose: () => void;
-  onSubmit: (
-    values: CreateDeliveryTypeInput
-  ) => Promise<boolean>; // 成功したかどうかを返す
+  onSubmit: (values: CreateDeliveryTypeInput) => Promise<boolean>; // 成功したかどうかを返す
 };
 
 export const DeliveryTypeModal = ({
   title,
   submitLabel,
   initialValues,
-  isSaving,
   onClose,
   onSubmit,
-}: DeliveryTypeModalProps) => {
+}: Props) => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<CreateDeliveryTypeInput>({
     resolver: zodResolver(createDeliveryTypeSchema),
     defaultValues: {
@@ -64,7 +60,7 @@ export const DeliveryTypeModal = ({
           <button
             type="button"
             onClick={onClose}
-            disabled={isSaving}
+            disabled={isSubmitting}
             aria-label="閉じる"
             className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground disabled:opacity-50"
           >
@@ -78,7 +74,7 @@ export const DeliveryTypeModal = ({
             <input
               {...register("name")}
               placeholder="例：60サイズ"
-              disabled={isSaving}
+              disabled={isSubmitting}
               autoFocus
               className="mt-2 block w-full rounded-xl border-0 bg-input-background px-4 py-3 text-base font-normal outline-none ring-1 ring-transparent transition focus:ring-primary disabled:opacity-50 md:text-sm"
             />
@@ -97,7 +93,7 @@ export const DeliveryTypeModal = ({
                 step="1"
                 inputMode="numeric"
                 placeholder="185"
-                disabled={isSaving}
+                disabled={isSubmitting}
                 className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base font-normal outline-none disabled:opacity-50 md:text-sm"
               />
               <span className="text-sm text-muted-foreground">/ 件</span>
@@ -114,17 +110,17 @@ export const DeliveryTypeModal = ({
             <button
               type="button"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isSubmitting}
               className="rounded-xl border border-border bg-white px-4 py-3 text-sm font-bold disabled:opacity-50"
             >
               キャンセル
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSubmitting}
               className="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSaving ? "保存中..." : submitLabel}
+              {isSubmitting ? "保存中..." : submitLabel}
             </button>
           </div>
         </form>

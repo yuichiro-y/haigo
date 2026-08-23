@@ -64,9 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // リクエスト本文の型と値を検証
-    const result = createDeliveryTypeSchema.safeParse(
-      await request.json(),
-    );
+    const result = createDeliveryTypeSchema.safeParse(await request.json());
 
     if (!result.success) {
       return NextResponse.json(

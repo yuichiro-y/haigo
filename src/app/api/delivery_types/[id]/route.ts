@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAppUser } from "@/app/_lib/auth/getCurrentAppUser";
 import { prisma } from "@/app/_lib/prisma/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { deliveryTypeIdSchema,
+import {
+  deliveryTypeIdSchema,
   updateDeliveryTypeSchema,
 } from "@/app/_lib/validation/deliveryType";
 
@@ -43,9 +44,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     // リクエストボディを検証する
-    const result = updateDeliveryTypeSchema.safeParse(
-      await request.json(),
-    );
+    const result = updateDeliveryTypeSchema.safeParse(await request.json());
 
     if (!result.success) {
       return NextResponse.json(

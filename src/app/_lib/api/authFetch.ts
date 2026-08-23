@@ -25,20 +25,11 @@ export const authFetch = async <T>(
     headers,
   });
 
-  if (!response.ok) {
-    const body = await response.json();
-    // エラーレスポンスの形式が想定と異なる場合は、汎用的なエラーを投げる
-    if (
-      !body ||
-      typeof body !== "object" ||
-      !("message" in body) ||
-      typeof body.message !== "string"
-    ) {
-      throw new Error("通信に失敗しました");
-    }
+  const body = await response.json();
 
+  if (!response.ok) {
     throw new Error(body.message);
   }
 
-  return response.json();
+  return body;
 };

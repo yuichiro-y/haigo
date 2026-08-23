@@ -28,7 +28,6 @@ export default function DeliveryTypesSettingsPage() {
     useState<DeliveryType | null>(null); // 配送サイズ編集モーダルの表示状態を管理
   const [showInactive, setShowInactive] = useState(false); // 非表示の配送サイズを表示するかどうかを管理
   const [savingId, setSavingId] = useState<string | null>(null); // 配送サイズの保存中のIDを管理
-  const [isCreating, setIsCreating] = useState(false); // 配送サイズ追加中の状態を管理
   const [actionError, setActionError] = useState(""); // 配送サイズ追加・編集のアクションエラーを管理
   const [actionMessage, setActionMessage] = useState(""); // 配送サイズ追加・編集のアクションメッセージを管理
 
@@ -63,7 +62,6 @@ export default function DeliveryTypesSettingsPage() {
 
   // 配送サイズ追加の処理を定義
   const handleCreate = async (values: CreateDeliveryTypeInput) => {
-    setIsCreating(true);
     clearActionMessage();
 
     try {
@@ -85,8 +83,6 @@ export default function DeliveryTypesSettingsPage() {
           : "配送サイズの追加に失敗しました",
       );
       return false;
-    } finally {
-      setIsCreating(false);
     }
   };
   // 配送サイズ更新の処理を定義
@@ -279,7 +275,6 @@ export default function DeliveryTypesSettingsPage() {
           key="add-delivery-type"
           title="配送サイズを追加"
           submitLabel="追加する"
-          isSaving={isCreating}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleCreate}
         />
@@ -295,7 +290,6 @@ export default function DeliveryTypesSettingsPage() {
             name: editingDeliveryType.name,
             currentUnitPrice: editingDeliveryType.currentUnitPrice,
           }}
-          isSaving={savingId === editingDeliveryType.id}
           onClose={() => setEditingDeliveryType(null)}
           onSubmit={(values) => handleUpdate(editingDeliveryType.id, values)}
         />
