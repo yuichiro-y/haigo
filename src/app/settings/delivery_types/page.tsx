@@ -1,46 +1,28 @@
 "use client";
 
 import { authFetch } from "@/app/_lib/api/authFetch";
-import {
-  ChevronDown,
-  CircleAlert,
-  CircleCheck,
-  Plus,
-} from "lucide-react";
+import { ChevronDown, CircleAlert, CircleCheck, Plus } from "lucide-react";
 import { useState } from "react";
-import useSWR from "swr";
 import {
-  deliveryTypesSchema,
   type DeliveryType,
   type CreateDeliveryTypeInput,
   type UpdateDeliveryTypeInput,
 } from "@/app/_lib/validation/deliveryType";
 import { DeliveryTypeModal } from "@/app/_components/Modal/DeliveryTypeModal";
 import { DeliveryTypeRow } from "@/app/_components/DeliveryType/DeliveryTypeRow";
-
-// 配送サイズ一覧取得用のURLを定義
-const deliveryTypesUrl = "/api/delivery-types";
-
-// 配送サイズ一覧を取得する関数を定義
-const fetchDeliveryTypes = async (url: string) => {
-  const response = await authFetch(url);
-  const result = deliveryTypesSchema.safeParse(
-    await response.json(),
-  );
-
-  if (!result.success) {
-    throw new Error("配送サイズ一覧の取得に失敗しました");
-  }
-
-  return result.data;
-};
+import { useFetch } from "@/app/_hooks/useFetch";
+import type { AppUser } from "@/app/_types/appUser";
 
 // 配送サイズ設定ページのコンポーネントを定義
 export default function DeliveryTypesSettingsPage() {
-  const { data, error, isLoading, mutate } = useSWR<DeliveryType[]>(
-    deliveryTypesUrl,
-    fetchDeliveryTypes
-  );  // 配送サイズ一覧を取得するSWRフックを使用
+  const { data, error, isLoading, mutate } = useFetch<DeliveryType[]>(
+    "/api/delivery_types",
+  );
+  const {
+    data: appUser,
+    error: appUserError,
+    isLoading: isAppUserLoading,
+  } = useFetch<AppUser>("/api/me");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 配送サイズ追加モーダルの表示状態を管理
   const [editingDeliveryType, setEditingDeliveryType] =
     useState<DeliveryType | null>(null); // 配送サイズ編集モーダルの表示状態を管理
@@ -50,8 +32,28 @@ export default function DeliveryTypesSettingsPage() {
   const [actionError, setActionError] = useState(""); // 配送サイズ追加・編集のアクションエラーを管理
   const [actionMessage, setActionMessage] = useState(""); // 配送サイズ追加・編集のアクションメッセージを管理
 
-  const activeDeliveryTypes = data?.filter((item) => item.isActive) ?? []; // 表示中の配送サイズ一覧を取得
-  const inactiveDeliveryTypes = data?.filter((item) => !item.isActive) ?? []; // 非表示の配送サイズ一覧を取得
+  if (isLoading || isAppUserLoading) {
+    return <p>読み込み中...</p>;
+  }
+
+  if (error || appUserError) {
+    const fetchError = error ?? appUserError;
+
+    return (
+      <p role="alert">
+        {fetchError instanceof Error
+          ? fetchError.message
+          : "情報の取得に失敗しました"}
+      </p>
+    );
+  }
+
+  if (!data || !appUser) {
+    return null;
+  }
+
+  const activeDeliveryTypes = data.filter((item) => item.isActive); // 表示中の配送サイズ一覧を取得
+  const inactiveDeliveryTypes = data.filter((item) => !item.isActive); // 非表示の配送サイズ一覧を取得
 
   // アクションメッセージとエラーをクリアする関数を定義
   const clearActionMessage = () => {
@@ -65,19 +67,22 @@ export default function DeliveryTypesSettingsPage() {
     clearActionMessage();
 
     try {
-      await authFetch("/api/delivery-types", {
+      await authFetch("/api/delivery_types", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(values),
       });
 
       setActionMessage("配送サイズを追加しました");
-      await mutate();
+      mutate();
       return true;
     } catch (createError) {
       setActionError(
         createError instanceof Error
           ? createError.message
-          : "配送サイズの追加に失敗しました"
+          : "配送サイズの追加に失敗しました",
       );
       return false;
     } finally {
@@ -90,8 +95,11 @@ export default function DeliveryTypesSettingsPage() {
     clearActionMessage();
 
     try {
-      await authFetch(`/api/delivery-types/${id}`, {
+      await authFetch(`/api/delivery_types/${id}`, {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(values),
       });
 
@@ -100,15 +108,15 @@ export default function DeliveryTypesSettingsPage() {
           ? values.isActive
             ? "配送サイズを再表示しました"
             : "配送サイズを非表示にしました"
-          : "配送サイズを更新しました"
+          : "配送サイズを更新しました",
       );
-      await mutate();
+      mutate();
       return true;
     } catch (updateError) {
       setActionError(
         updateError instanceof Error
           ? updateError.message
-          : "配送サイズの更新に失敗しました"
+          : "配送サイズの更新に失敗しました",
       );
       return false;
     } finally {
@@ -130,6 +138,28 @@ export default function DeliveryTypesSettingsPage() {
           <h1 className="text-2xl font-extrabold">設定</h1>
         </header>
 
+        <section aria-labelledby="profile-heading" className="mb-6">
+          <h2
+            id="profile-heading"
+            className="mb-2 text-xs font-bold text-muted-foreground"
+          >
+            プロフィール
+          </h2>
+
+          <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-4 py-5 shadow-sm">
+            <div
+              aria-hidden="true"
+              className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-xl font-extrabold text-primary"
+            >
+              {appUser.email.charAt(0).toUpperCase()}
+            </div>
+
+            <p className="min-w-0 truncate text-base text-muted-foreground md:text-sm">
+              {appUser.email}
+            </p>
+          </div>
+        </section>
+
         {/* 配送サイズ・単価設定 */}
         <section aria-labelledby="delivery-type-settings-heading">
           <p className="mb-2 text-xs font-bold text-muted-foreground">
@@ -146,29 +176,13 @@ export default function DeliveryTypesSettingsPage() {
               </p>
             </div>
 
-            {isLoading && (
-              <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                読み込み中...
-              </p>
-            )}
-
-            {error && (
-              <p
-                role="alert"
-                className="flex items-center gap-2 px-4 py-5 text-sm text-destructive"
-              >
-                <CircleAlert size={18} aria-hidden="true" />
-                {error instanceof Error
-                  ? error.message
-                  : "配送サイズの取得に失敗しました"}
-              </p>
-            )}
-
-            {!isLoading && !error && activeDeliveryTypes.length === 0 && (
-              <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                配送サイズはまだ登録されていません
-              </p>
-            )}
+            {/* 配送サイズが登録されていない場合のメッセージを表示 */}
+            {activeDeliveryTypes.length === 0 &&
+              inactiveDeliveryTypes.length === 0 && (
+                <p className="px-4 py-3 text-sm text-muted-foreground">
+                  配送サイズが登録されていません。追加してください。
+                </p>
+              )}
 
             {/* 配送サイズ一覧 */}
             {activeDeliveryTypes.length > 0 && (
@@ -241,7 +255,7 @@ export default function DeliveryTypesSettingsPage() {
         {/* どちらかに文字が入っていれば表示する。 */}
         {(actionError || actionMessage) && (
           <div
-          // エラーがある場合はalert、メッセージのみの場合はstatusとして扱う
+            // エラーがある場合はalert、メッセージのみの場合はstatusとして扱う
             role={actionError ? "alert" : "status"}
             className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold ${
               actionError

@@ -1,11 +1,7 @@
-import {
-  Eye,
-  EyeOff,
-  Pencil,
-} from "lucide-react";
+import { Eye, EyeOff, Pencil } from "lucide-react";
 import { type DeliveryType } from "@/app/_lib/validation/deliveryType";
 
-type DeliveryTypeRowProps = {
+type Props = {
   deliveryType: DeliveryType;
   isSaving: boolean;
   onEdit: (deliveryType: DeliveryType) => void;
@@ -17,7 +13,7 @@ export const DeliveryTypeRow = ({
   isSaving,
   onEdit,
   onToggle,
-}: DeliveryTypeRowProps) => (
+}: Props) => (
   <li className={deliveryType.isActive ? "" : "bg-muted/45"}>
     <div className="flex min-h-20 items-center gap-3 px-4 py-3">
       <div className="min-w-0 flex-1">

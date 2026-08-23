@@ -2,10 +2,10 @@
 
 import { supabase } from "@/app/_lib/supabase/client";
 // authFetchは、Supabaseのセッションを使用して認証付きのfetchリクエストを行う関数です。
-export const authFetch = async (
+export const authFetch = async <T>(
   input: RequestInfo | URL,
   init: RequestInit = {},
-) => {
+): Promise<T> => {
   // Supabaseのセッションを取得する
   const {
     data: { session },
@@ -19,11 +19,6 @@ export const authFetch = async (
   // AuthorizationヘッダーにBearerトークンを設定する
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${session.access_token}`);
-
-  // リクエストボディが文字列で、Content-Typeが設定されていない場合は、Content-Typeをapplication/jsonに設定する
-  if (typeof init.body === "string" && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
 
   const response = await fetch(input, {
     ...init,
@@ -45,5 +40,5 @@ export const authFetch = async (
     throw new Error(body.message);
   }
 
-  return response;
+  return response.json();
 };
