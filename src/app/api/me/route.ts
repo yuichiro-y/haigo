@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json<AppUser>({
-      id: appUser.id,
       email: appUser.email,
     });
   } catch (error) {
