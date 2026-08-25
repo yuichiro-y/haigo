@@ -40,11 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# AI editor / agent settings
-.agents/
-.windsurf/
-.claude/
-skills-lock.json
-
 #prisma
-/app/generated/prisma
+/src/generated/prisma
