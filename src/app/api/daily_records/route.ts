@@ -7,6 +7,7 @@ import { createDailyRecordSchema } from "@/app/_lib/validation/dailyRecord";
 
 // 日次記録の選択項目
 const dailyRecordSelect = {
+  id: true,
   memo: true,
   dailyRecordItems: {
     select: {
@@ -110,8 +111,13 @@ export async function POST(request: NextRequest) {
     // DB保存用の日付へ変換する
     const workDate = new Date(`${workDateString}T00:00:00.000Z`);
 
+    // 数量が1以上ある配送サイズだけを保存対象にする
+    const recordedItems = dailyRecordItems.filter(
+      (item) => item.quantity > 0,
+    );
+
     // 各入力から配送サイズIDだけ取り出す
-    const deliveryTypeIds = dailyRecordItems.map(
+    const deliveryTypeIds = recordedItems.map(
       (item) => item.deliveryTypeId,
     );
 
@@ -147,9 +153,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 配送サイズごとに保存用のSnapshotを作る
-    const dailyRecordItemsWithSnapshot = [];
+    const dailyRecordItemsWithSnapshots = [];
 
-    for (const item of dailyRecordItems) {
+    for (const item of recordedItems) {
       // 入力されたIDと一致する、DB取得済みの配送サイズを探す
       const deliveryType = deliveryTypes.find(
         (type) => type.id === item.deliveryTypeId,
@@ -164,7 +170,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 画面の数量とDBの名前・単価を組み合わせる
-      dailyRecordItemsWithSnapshot.push({
+      dailyRecordItemsWithSnapshots.push({
         deliveryTypeId: item.deliveryTypeId,
         quantity: item.quantity,
         nameSnapshot: deliveryType.name,
@@ -172,12 +178,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { message: "日次記録の作成はまだ実装されていません" },
-      { status: 501 },
-    );
+    // 日次記録と関連データをまとめて作成する
+    const createdDailyRecord = await prisma.dailyRecord.create({
+      data: {
+        userId: appUser.id,
+        workDate,
+        memo: memo.trim() || null,
+
+        dailyRecordItems: {
+          create: dailyRecordItemsWithSnapshots,
+        },
+
+        customRevenues: {
+          create: customRevenues,
+        },
+      },
+      select: dailyRecordSelect,
+    });
+
+    return NextResponse.json(createdDailyRecord, { status: 201 });
   } catch (error) {
-    // 想定外のエラーは500で返す
+    // 同じユーザー・同じ日付の場合409を返す
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { message: "この日付の記録はすでに登録されています" },
+        { status: 409 },
+      );
+    }
     console.error("日次記録作成エラー:", error);
 
     return NextResponse.json(
