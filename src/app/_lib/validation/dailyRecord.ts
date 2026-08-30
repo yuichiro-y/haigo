@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const dailyRecordIdSchema = z.uuid();
+
 export const createDailyRecordSchema = z.object({
   // 日付がYYYY-MM-DD形式であることを検証する
   workDate: z.iso.date(),
@@ -22,4 +24,12 @@ export const createDailyRecordSchema = z.object({
 
 export type CreateDailyRecordInput = z.infer<
   typeof createDailyRecordSchema
+>;
+
+export const updateDailyRecordSchema = createDailyRecordSchema.omit({
+  workDate: true,
+});
+
+export type UpdateDailyRecordinput = z.infer<
+  typeof updateDailyRecordSchema
 >;
