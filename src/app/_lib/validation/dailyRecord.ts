@@ -17,7 +17,7 @@ export const createDailyRecordSchema = z.object({
   customRevenues: z.array(
     z.object({
       name: z.string().trim().min(1),
-      amount: z.number().int().min(0),
+      amount: z.number().int().min(1),
     }),
   ),
 });
@@ -30,6 +30,6 @@ export const updateDailyRecordSchema = createDailyRecordSchema.omit({
   workDate: true,
 });
 
-export type UpdateDailyRecordinput = z.infer<
+export type UpdateDailyRecordInput = z.infer<
   typeof updateDailyRecordSchema
 >;

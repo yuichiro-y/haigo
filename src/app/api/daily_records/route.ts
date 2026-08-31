@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     // ID重複検査
     if (new Set(deliveryTypeIds).size !== deliveryTypeIds.length) {
       return NextResponse.json(
-        { message: "同じ配達種別が重複しています" },
+        { message: "同じ配送サイズが重複しています" },
         { status: 400 },
       );
     }
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     // 見つからないIDがあれば拒否する
     if (deliveryTypes.length !== deliveryTypeIds.length) {
       return NextResponse.json(
-        { message: "存在しない配達種別が含まれています" },
+        { message: "存在しない配送サイズが含まれています" },
         { status: 400 },
       );
     }
@@ -161,10 +161,10 @@ export async function POST(request: NextRequest) {
         (type) => type.id === item.deliveryTypeId,
       );
 
-      // 直前に件数確認済みだが、念のため存在確認
+      // find()がundefinedの場合はSnapshotを作成できないため、存在を確認する
       if (!deliveryType) {
         return NextResponse.json(
-          { message: "存在しない配達種別が含まれています" },
+          { message: "存在しない配送サイズが含まれています" },
           { status: 400 },
         );
       }
