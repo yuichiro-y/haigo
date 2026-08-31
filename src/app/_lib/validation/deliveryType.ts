@@ -12,7 +12,7 @@ export const createDeliveryTypeSchema = z.object({
   currentUnitPrice: z
     .number({ error: "単価は数値で入力してください" })
     .int({ message: "単価は整数で入力してください" })
-    .min(0, { message: "単価は0以上で入力してください" }),
+    .min(1, { message: "単価は1以上で入力してください" }),
 });
 
 // 配送サイズ登録の受付入力を定義

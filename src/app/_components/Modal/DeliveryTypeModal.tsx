@@ -89,7 +89,7 @@ export const DeliveryTypeModal = ({
                   valueAsNumber: true,
                 })}
                 type="number"
-                min="0"
+                min="1"
                 step="1"
                 inputMode="numeric"
                 placeholder="185"
