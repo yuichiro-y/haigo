@@ -172,6 +172,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updatedDailyRecord = await prisma.dailyRecord.update({
       where: {
         id: ownedDailyRecord.id,
+        userId: appUser.id,
       },
       data: {
         memo: memo.trim() || null,
