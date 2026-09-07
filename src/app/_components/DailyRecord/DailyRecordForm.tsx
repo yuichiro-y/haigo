@@ -101,7 +101,7 @@ export const DailyRecordForm = ({
   const totalRevenue = deliveryRevenue + customRevenueTotal;
 
   return (
-    <form onSubmit={handleSubmit(onSave)}>
+    <form className="space-y-3 pb-4" onSubmit={handleSubmit(onSave)}>
       {deliveryTypes.map((deliveryType, index) => {
         // 配送サイズごとの数量と単価から、その行の小計を計算する
         const quantity = watchedItems[index]?.quantity;
@@ -110,26 +110,44 @@ export const DailyRecordForm = ({
         const subtotal = deliveryType.currentUnitPrice * safeQuantity;
 
         return (
-          <div key={deliveryType.id}>
-            <div className="flex justify-between mt-2 text-center">
-              <p>{deliveryType.name}</p>
+          <div
+            key={deliveryType.id}
+            className={`rounded-xl border-2 p-4 shadow-sm transition-colors ${
+              safeQuantity > 0
+                ? "border-primary/40 bg-secondary"
+                : "border-border bg-card"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <p className="min-w-0 flex-1 border-b border-dashed border-border pb-1 text-sm font-bold">
+                {deliveryType.name}
+              </p>
 
-              <div className="flex items-center">
-                <p>¥ {deliveryType.currentUnitPrice} /件</p>
-                <p className="font-bold ml-2">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                <span>¥</span>
+                <span className="min-w-16 rounded-full bg-muted px-3 py-1 text-center font-bold text-foreground">
+                  {deliveryType.currentUnitPrice.toLocaleString("ja-JP")}
+                </span>
+                <span>/件</span>
+                <p className="font-semibold text-primary">
                   ¥{subtotal.toLocaleString("ja-JP")}
                 </p>
-                <Trash2 size={16} aria-hidden="true" className="ml-2" />
+                <Trash2
+                  size={15}
+                  aria-hidden="true"
+                  className="ml-0.5 text-muted-foreground"
+                />
               </div>
             </div>
 
-            <div className="flex justify-between items-center px-3 ">
+            <div className="mt-3 flex h-14 items-center justify-between">
               <button
                 type="button"
                 onClick={() => changeQuantity(index, -1)}
                 aria-label={`${deliveryType.name}を1件減らす`}
+                className="flex size-13 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:bg-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                <Minus />
+                <Minus size={22} aria-hidden="true" />
               </button>
 
               <input
@@ -144,18 +162,21 @@ export const DailyRecordForm = ({
                 min={0}
                 step={1}
                 inputMode="numeric"
-                className="w-full max-w-30 text-center min-w-0 flex-1 px-3 py-3 font-bold text-9xl outline-none disabled:opacity-50 md:text-sm mt-2 items-center rounded-xl bg-primary-foreground ring-1 ring-border focus-within:ring-primary
+                className={`w-24 bg-transparent px-3 py-2 text-center text-3xl font-bold outline-none disabled:opacity-50 ${
+                  safeQuantity > 0 ? "text-primary" : "text-muted-foreground/30"
+                }
                 [appearance:textfield]
                 [&::-webkit-inner-spin-button]:appearance-none
-                [&::-webkit-outer-spin-button]:appearance-none"
+                [&::-webkit-outer-spin-button]:appearance-none`}
               />
 
               <button
                 type="button"
                 onClick={() => changeQuantity(index, 1)}
                 aria-label={`${deliveryType.name}を1件増やす`}
+                className="flex size-13 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                <Plus />
+                <Plus size={22} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -164,39 +185,52 @@ export const DailyRecordForm = ({
 
       {/* 追加された収益の数だけ、名称・金額・削除ボタンを表示する */}
       {fields.map((field, index) => (
-        <div key={field.id}>
-          <input
-            {...register(`customRevenues.${index}.name`)}
-            type="text"
-            placeholder="追加収益名"
-          />
+        <div
+          key={field.id}
+          className="rounded-xl border border-border bg-card p-3 shadow-sm"
+        >
+          <div className="flex items-center gap-2">
+            <input
+              {...register(`customRevenues.${index}.name`)}
+              type="text"
+              placeholder="追加収益名"
+              className="min-w-0 flex-1 rounded-lg bg-muted px-3 py-2.5 text-base md:text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+            />
+
+            <span className="text-sm text-muted-foreground">¥</span>
+            <input
+              {...register(`customRevenues.${index}.amount`, {
+                valueAsNumber: true,
+              })}
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              placeholder="金額"
+              className="w-24 rounded-lg bg-muted px-3 py-2.5 text-right text-base md:text-sm font-bold outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+            />
+
+            <button
+              type="button"
+              onClick={() => remove(index)}
+              aria-label="追加収益を削除"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              <Trash2 size={17} aria-hidden="true" />
+            </button>
+          </div>
 
           {errors.customRevenues?.[index]?.name && (
-            <p role="alert">{errors.customRevenues[index]?.name?.message}</p>
+            <p className="mt-2 text-xs text-destructive" role="alert">
+              {errors.customRevenues[index]?.name?.message}
+            </p>
           )}
-
-          <input
-            {...register(`customRevenues.${index}.amount`, {
-              valueAsNumber: true,
-            })}
-            type="number"
-            min={1}
-            step={1}
-            inputMode="numeric"
-            placeholder="金額"
-          />
 
           {errors.customRevenues?.[index]?.amount && (
-            <p role="alert">{errors.customRevenues[index]?.amount.message}</p>
+            <p className="mt-2 text-xs text-destructive" role="alert">
+              {errors.customRevenues[index]?.amount.message}
+            </p>
           )}
-
-          <button
-            type="button"
-            onClick={() => remove(index)}
-            aria-label="追加収益を削除"
-          >
-            <Trash2 />
-          </button>
         </div>
       ))}
 
@@ -209,31 +243,59 @@ export const DailyRecordForm = ({
             amount: 0,
           })
         }
+        className="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-transparent px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
+        <Plus size={16} aria-hidden="true" />
         追加収益を追加
       </button>
 
       {/* メモ欄 */}
-      <div>
-        <label htmlFor="memo">メモ</label>
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <label
+          htmlFor="memo"
+          className="mb-2 block text-xs font-medium text-muted-foreground"
+        >
+          メモ
+        </label>
 
         <textarea
           id="memo"
           {...register("memo")}
           disabled={isSubmitting}
           placeholder="今日のメモを入力"
+          rows={3}
+          className="w-full resize-none bg-transparent text-base md:text-sm outline-none placeholder:text-border disabled:opacity-50"
         />
       </div>
 
-      <p>配送売上：¥{deliveryRevenue.toLocaleString("ja-JP")}</p>
+      <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-sm">
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <p className="flex items-center justify-between">
+            <span>配送売上</span>
+            <span>¥{deliveryRevenue.toLocaleString("ja-JP")}</span>
+          </p>
 
-      <p>追加収益：¥{customRevenueTotal.toLocaleString("ja-JP")}</p>
+          <p className="flex items-center justify-between">
+            <span>追加収益</span>
+            <span>¥{customRevenueTotal.toLocaleString("ja-JP")}</span>
+          </p>
+        </div>
 
-      <p>本日合計：¥{totalRevenue.toLocaleString("ja-JP")}</p>
+        <p className="mt-3 flex items-center justify-between border-t border-border pt-3">
+          <span className="text-sm text-muted-foreground">本日合計</span>
+          <span className="text-2xl font-bold text-primary">
+            ¥{totalRevenue.toLocaleString("ja-JP")}
+          </span>
+        </p>
 
-      <button type="submit" disabled={isSubmitting} className="items-center">
-        {isSubmitting ? "保存中..." : dailyRecord ? "更新する" : "保存する"}
-      </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-3 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {isSubmitting ? "保存中..." : dailyRecord ? "更新する" : "保存する"}
+        </button>
+      </div>
     </form>
   );
 };

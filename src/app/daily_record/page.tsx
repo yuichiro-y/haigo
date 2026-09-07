@@ -38,7 +38,11 @@ export default function DailyRecordPage() {
 
   // 配送サイズと今日の記録を取得している間はフォームを表示しない
   if (isDailyRecordLoading || isDeliveryTypesLoading) {
-    return <p>読み込み中...</p>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground">読み込み中...</p>
+      </main>
+    );
   }
 
   // どちらかの取得に失敗した場合は、先に見つかったエラーを表示する
@@ -46,11 +50,16 @@ export default function DailyRecordPage() {
     const fetchError = dailyRecordError ?? deliveryTypesError;
 
     return (
-      <p role="alert">
-        {fetchError instanceof Error
-          ? fetchError.message
-          : "情報の取得に失敗しました"}
-      </p>
+      <main className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p
+          className="w-full max-w-md rounded-xl border border-destructive/30 bg-card px-4 py-3 text-sm text-destructive shadow-sm"
+          role="alert"
+        >
+          {fetchError instanceof Error
+            ? fetchError.message
+            : "情報の取得に失敗しました"}
+        </p>
+      </main>
     );
   }
 
@@ -132,25 +141,37 @@ export default function DailyRecordPage() {
   };
 
   return (
-    <>
-      <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:py-12">
-        <div className="mx-auto w-full max-w-xl">
-          <div className="text-center border-b">
-            <h1>今日の記録</h1>
-            <p className="mb-2">{today}</p>
-          </div>
+    <main className="min-h-screen bg-background px-3 pb-10 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-[470px]">
+        <header className="mb-3 border-b border-border py-3 text-center">
+          <h1 className="text-sm font-bold">今日の記録</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">{today}</p>
+        </header>
 
-          <DailyRecordForm
-            deliveryTypes={deliveryTypes}
-            dailyRecord={dailyRecord}
-            onSave={handleSave}
-          />
-        </div>
+        {actionError && (
+          <p
+            className="mb-3 rounded-xl border border-destructive/30 bg-card px-4 py-3 text-sm text-destructive shadow-sm"
+            role="alert"
+          >
+            {actionError}
+          </p>
+        )}
 
-        {actionError && <p role="alert">{actionError}</p>}
+        {actionMessage && (
+          <p
+            className="mb-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-[var(--chart-green)] shadow-sm"
+            role="status"
+          >
+            {actionMessage}
+          </p>
+        )}
 
-        {actionMessage && <p role="status">{actionMessage}</p>}
-      </main>
-    </>
+        <DailyRecordForm
+          deliveryTypes={deliveryTypes}
+          dailyRecord={dailyRecord}
+          onSave={handleSave}
+        />
+      </div>
+    </main>
   );
 }
