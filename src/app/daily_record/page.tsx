@@ -12,27 +12,36 @@ import { authFetch } from "@/app/_lib/api/authFetch";
 import { DailyRecordForm } from "../_components/DailyRecord/DailyRecordForm";
 
 export default function DailyRecordPage() {
+  // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
   const today = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Tokyo",
   }).format(new Date());
+
+  // 今日の入力欄に表示する、使用中の配送サイズだけを取得する
   const {
     data: deliveryTypes,
     error: deliveryTypesError,
     isLoading: isDeliveryTypesLoading,
   } = useFetch<DeliveryType[]>("/api/delivery_types?activeOnly=true");
+
+  // 今日の保存済み記録を取得する。未登録の場合はnullが返る
   const {
     data: dailyRecord,
     error: dailyRecordError,
     isLoading: isDailyRecordLoading,
     mutate: mutateDailyRecord,
   } = useFetch<DailyRecord | null>(`/api/daily_records?date=${today}`);
+
+  // 保存・更新の結果を画面へ表示するために保持する
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
 
+  // 配送サイズと今日の記録を取得している間はフォームを表示しない
   if (isDailyRecordLoading || isDeliveryTypesLoading) {
     return <p>読み込み中...</p>;
   }
 
+  // どちらかの取得に失敗した場合は、先に見つかったエラーを表示する
   if (dailyRecordError || deliveryTypesError) {
     const fetchError = dailyRecordError ?? deliveryTypesError;
 
@@ -45,15 +54,18 @@ export default function DailyRecordPage() {
     );
   }
 
+  // undefinedは取得未完了、nullは今日の記録が未登録という正常な状態
   if (!deliveryTypes || dailyRecord === undefined) {
     return null;
   }
 
+  // 新しい保存処理を始める前に、前回の結果表示を消す
   const clearActionMessage = () => {
     setActionError("");
     setActionMessage("");
   };
 
+  // 未登録の日次記録をPOSTで新規作成する
   const handleCreate = async (values: CreateDailyRecordInput) => {
     clearActionMessage();
 
@@ -67,6 +79,7 @@ export default function DailyRecordPage() {
       });
 
       setActionMessage("今日の記録を保存しました");
+      // 作成結果を取得し直し、以後の保存をPATCHへ切り替える
       mutateDailyRecord();
       return true;
     } catch (createError) {
@@ -79,6 +92,7 @@ export default function DailyRecordPage() {
     }
   };
 
+  // 保存済みの日次記録をID指定のPATCHで更新する
   const handleUpdate = async (id: string, values: UpdateDailyRecordInput) => {
     clearActionMessage();
 
@@ -92,6 +106,7 @@ export default function DailyRecordPage() {
       });
 
       setActionMessage("今日の記録を更新しました");
+      // 更新後の記録をAPIから取得し直す
       mutateDailyRecord();
       return true;
     } catch (createError) {
@@ -104,6 +119,7 @@ export default function DailyRecordPage() {
     }
   };
 
+  // 今日の記録があるかどうかで、POSTとPATCHを振り分ける
   const handleSave = async (values: UpdateDailyRecordInput) => {
     if (dailyRecord) {
       return handleUpdate(dailyRecord.id, values);
