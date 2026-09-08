@@ -6,6 +6,8 @@ import {
   updateDailyRecordSchema,
 } from "@/app/_lib/validation/dailyRecord";
 import { DeliveryType } from "@/app/_lib/validation/deliveryType";
+import { Button } from "@/app/_components/Button/Button";
+import { Input } from "@/app/_components/Input/Input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -141,14 +143,15 @@ export const DailyRecordForm = ({
             </div>
 
             <div className="mt-3 flex h-14 items-center justify-between">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => changeQuantity(index, -1)}
                 aria-label={`${deliveryType.name}を1件減らす`}
-                className="flex size-13 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:bg-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="size-13 rounded-xl"
               >
                 <Minus size={22} aria-hidden="true" />
-              </button>
+              </Button>
 
               <input
                 type="hidden"
@@ -170,14 +173,14 @@ export const DailyRecordForm = ({
                 [&::-webkit-outer-spin-button]:appearance-none`}
               />
 
-              <button
+              <Button
                 type="button"
                 onClick={() => changeQuantity(index, 1)}
                 aria-label={`${deliveryType.name}を1件増やす`}
-                className="flex size-13 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="size-13 rounded-xl"
               >
                 <Plus size={22} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -190,15 +193,15 @@ export const DailyRecordForm = ({
           className="rounded-xl border border-border bg-card p-3 shadow-sm"
         >
           <div className="flex items-center gap-2">
-            <input
+            <Input
               {...register(`customRevenues.${index}.name`)}
               type="text"
               placeholder="追加収益名"
-              className="min-w-0 flex-1 rounded-lg bg-muted px-3 py-2.5 text-base md:text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+              className="min-w-0 flex-1"
             />
 
             <span className="text-sm text-muted-foreground">¥</span>
-            <input
+            <Input
               {...register(`customRevenues.${index}.amount`, {
                 valueAsNumber: true,
               })}
@@ -207,17 +210,18 @@ export const DailyRecordForm = ({
               step={1}
               inputMode="numeric"
               placeholder="金額"
-              className="w-24 rounded-lg bg-muted px-3 py-2.5 text-right text-base md:text-sm font-bold outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+              className="w-24 text-right font-bold"
             />
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => remove(index)}
               aria-label="追加収益を削除"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="size-9 shrink-0 rounded-lg"
             >
               <Trash2 size={17} aria-hidden="true" />
-            </button>
+            </Button>
           </div>
 
           {errors.customRevenues?.[index]?.name && (
@@ -235,19 +239,20 @@ export const DailyRecordForm = ({
       ))}
 
       {/* 追加収益の入力欄を1行増やす */}
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() =>
           append({
             name: "",
             amount: 0,
           })
         }
-        className="flex w-full items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-transparent px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="w-full gap-1 rounded-xl px-4 py-3 text-sm font-medium"
       >
         <Plus size={16} aria-hidden="true" />
         追加収益を追加
-      </button>
+      </Button>
 
       {/* メモ欄 */}
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -288,13 +293,13 @@ export const DailyRecordForm = ({
           </span>
         </p>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="mt-3 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="mt-3 w-full rounded-xl px-4 py-3.5 text-sm font-bold"
         >
           {isSubmitting ? "保存中..." : dailyRecord ? "更新する" : "保存する"}
-        </button>
+        </Button>
       </div>
     </form>
   );
