@@ -10,6 +10,7 @@ import {
 } from "@/app/_lib/validation/dailyRecord";
 import { authFetch } from "@/app/_lib/api/authFetch";
 import { DailyRecordForm } from "../_components/DailyRecord/DailyRecordForm";
+import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
 
 export default function DailyRecordPage() {
   // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
@@ -141,37 +142,40 @@ export default function DailyRecordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-3 pb-10 sm:px-6 lg:py-10">
-      <div className="mx-auto w-full max-w-[470px]">
-        <header className="mb-3 border-b border-border py-3 text-center">
-          <h1 className="text-sm font-bold">今日の記録</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">{today}</p>
-        </header>
+    <>
+      <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 md:pb-10 lg:py-10">
+        <div className="mx-auto w-full max-w-[470px]">
+          <header className="mb-3 border-b border-border py-3 text-center">
+            <h1 className="text-sm font-bold">今日の記録</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">{today}</p>
+          </header>
 
-        {actionError && (
-          <p
-            className="mb-3 rounded-xl border border-destructive/30 bg-card px-4 py-3 text-sm text-destructive shadow-sm"
-            role="alert"
-          >
-            {actionError}
-          </p>
-        )}
+          {actionError && (
+            <p
+              className="mb-3 rounded-xl border border-destructive/30 bg-card px-4 py-3 text-sm text-destructive shadow-sm"
+              role="alert"
+            >
+              {actionError}
+            </p>
+          )}
 
-        {actionMessage && (
-          <p
-            className="mb-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-[var(--chart-green)] shadow-sm"
-            role="status"
-          >
-            {actionMessage}
-          </p>
-        )}
+          {actionMessage && (
+            <p
+              className="mb-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-[var(--chart-green)] shadow-sm"
+              role="status"
+            >
+              {actionMessage}
+            </p>
+          )}
 
-        <DailyRecordForm
-          deliveryTypes={deliveryTypes}
-          dailyRecord={dailyRecord}
-          onSave={handleSave}
-        />
-      </div>
-    </main>
+          <DailyRecordForm
+            deliveryTypes={deliveryTypes}
+            dailyRecord={dailyRecord}
+            onSave={handleSave}
+          />
+        </div>
+      </main>
+      <MobileNavigation />
+    </>
   );
 }

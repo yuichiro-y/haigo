@@ -12,6 +12,7 @@ import { DeliveryTypeModal } from "@/app/_components/Modal/DeliveryTypeModal";
 import { DeliveryTypeRow } from "@/app/_components/DeliveryType/DeliveryTypeRow";
 import { useFetch } from "@/app/_hooks/useFetch";
 import type { AppUser } from "@/app/_types/appUser";
+import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
 
 // 配送サイズ設定ページのコンポーネントを定義
 export default function DeliveryTypesSettingsPage() {
@@ -128,172 +129,175 @@ export default function DeliveryTypesSettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:py-12">
-      <div className="mx-auto w-full max-w-xl">
-        <header className="mb-6">
-          <h1 className="text-2xl font-extrabold">設定</h1>
-        </header>
+    <>
+      <main className="min-h-screen bg-background px-4 pt-8 pb-28 sm:px-6 md:pb-8 lg:py-12">
+        <div className="mx-auto w-full max-w-xl">
+          <header className="mb-6">
+            <h1 className="text-2xl font-extrabold">設定</h1>
+          </header>
 
-        <section aria-labelledby="profile-heading" className="mb-6">
-          <h2
-            id="profile-heading"
-            className="mb-2 text-xs font-bold text-muted-foreground"
-          >
-            プロフィール
-          </h2>
-
-          <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-4 py-5 shadow-sm">
-            <div
-              aria-hidden="true"
-              className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-xl font-extrabold text-primary"
+          <section aria-labelledby="profile-heading" className="mb-6">
+            <h2
+              id="profile-heading"
+              className="mb-2 text-xs font-bold text-muted-foreground"
             >
-              {appUser.email.charAt(0).toUpperCase()}
-            </div>
+              プロフィール
+            </h2>
 
-            <p className="min-w-0 truncate text-base text-muted-foreground md:text-sm">
-              {appUser.email}
-            </p>
-          </div>
-        </section>
+            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card px-4 py-5 shadow-sm">
+              <div
+                aria-hidden="true"
+                className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-xl font-extrabold text-primary"
+              >
+                {appUser.email.charAt(0).toUpperCase()}
+              </div>
 
-        {/* 配送サイズ・単価設定 */}
-        <section aria-labelledby="delivery-type-settings-heading">
-          <p className="mb-2 text-xs font-bold text-muted-foreground">
-            配送サイズ・単価設定
-          </p>
-
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            <div className="border-b border-border px-4 py-3">
-              <h2 id="delivery-type-settings-heading" className="sr-only">
-                配送サイズ・単価設定
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                配送記録で使用するサイズ名と1件あたりの単価を設定できます
+              <p className="min-w-0 truncate text-base text-muted-foreground md:text-sm">
+                {appUser.email}
               </p>
             </div>
+          </section>
 
-            {/* 配送サイズが登録されていない場合のメッセージを表示 */}
-            {activeDeliveryTypes.length === 0 &&
-              inactiveDeliveryTypes.length === 0 && (
-                <p className="px-4 py-3 text-sm text-muted-foreground">
-                  配送サイズが登録されていません。追加してください。
+          {/* 配送サイズ・単価設定 */}
+          <section aria-labelledby="delivery-type-settings-heading">
+            <p className="mb-2 text-xs font-bold text-muted-foreground">
+              配送サイズ・単価設定
+            </p>
+
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="border-b border-border px-4 py-3">
+                <h2 id="delivery-type-settings-heading" className="sr-only">
+                  配送サイズ・単価設定
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  配送記録で使用するサイズ名と1件あたりの単価を設定できます
                 </p>
+              </div>
+
+              {/* 配送サイズが登録されていない場合のメッセージを表示 */}
+              {activeDeliveryTypes.length === 0 &&
+                inactiveDeliveryTypes.length === 0 && (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    配送サイズが登録されていません。追加してください。
+                  </p>
+                )}
+
+              {/* 配送サイズ一覧 */}
+              {activeDeliveryTypes.length > 0 && (
+                <ul className="divide-y divide-border">
+                  {activeDeliveryTypes.map((deliveryType) => (
+                    <DeliveryTypeRow
+                      key={deliveryType.id}
+                      deliveryType={deliveryType}
+                      isSaving={savingId === deliveryType.id}
+                      onEdit={setEditingDeliveryType}
+                      onToggle={handleToggle}
+                    />
+                  ))}
+                </ul>
               )}
 
-            {/* 配送サイズ一覧 */}
-            {activeDeliveryTypes.length > 0 && (
-              <ul className="divide-y divide-border">
-                {activeDeliveryTypes.map((deliveryType) => (
-                  <DeliveryTypeRow
-                    key={deliveryType.id}
-                    deliveryType={deliveryType}
-                    isSaving={savingId === deliveryType.id}
-                    onEdit={setEditingDeliveryType}
-                    onToggle={handleToggle}
-                  />
-                ))}
-              </ul>
-            )}
+              {/* 非表示の配送サイズ */}
+              {inactiveDeliveryTypes.length > 0 && (
+                <div className="border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setShowInactive((current) => !current)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold"
+                    aria-expanded={showInactive}
+                  >
+                    非表示のサイズを表示（{inactiveDeliveryTypes.length}件）
+                    <ChevronDown
+                      size={16}
+                      aria-hidden="true"
+                      className={`transition-transform ${
+                        showInactive ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-            {/* 非表示の配送サイズ */}
-            {inactiveDeliveryTypes.length > 0 && (
-              <div className="border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setShowInactive((current) => !current)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold"
-                  aria-expanded={showInactive}
-                >
-                  非表示のサイズを表示（{inactiveDeliveryTypes.length}件）
-                  <ChevronDown
-                    size={16}
-                    aria-hidden="true"
-                    className={`transition-transform ${
-                      showInactive ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+                  {/* 非表示の配送サイズ */}
+                  {showInactive && (
+                    <ul className="divide-y divide-border border-t border-border">
+                      {inactiveDeliveryTypes.map((deliveryType) => (
+                        <DeliveryTypeRow
+                          key={deliveryType.id}
+                          deliveryType={deliveryType}
+                          isSaving={savingId === deliveryType.id}
+                          onEdit={setEditingDeliveryType}
+                          onToggle={handleToggle}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
 
-                {/* 非表示の配送サイズ */}
-                {showInactive && (
-                  <ul className="divide-y divide-border border-t border-border">
-                    {inactiveDeliveryTypes.map((deliveryType) => (
-                      <DeliveryTypeRow
-                        key={deliveryType.id}
-                        deliveryType={deliveryType}
-                        isSaving={savingId === deliveryType.id}
-                        onEdit={setEditingDeliveryType}
-                        onToggle={handleToggle}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+              {/* 配送サイズ追加ボタン */}
+              <button
+                type="button"
+                onClick={() => {
+                  clearActionMessage();
+                  setIsAddModalOpen(true);
+                }}
+                className="flex w-full items-center gap-2 border-t border-border px-4 py-3 text-sm font-bold text-primary"
+              >
+                <span className="flex size-6 items-center justify-center rounded-full bg-secondary">
+                  <Plus size={14} aria-hidden="true" />
+                </span>
+                配送サイズを追加
+              </button>
+            </div>
+          </section>
 
-            {/* 配送サイズ追加ボタン */}
-            <button
-              type="button"
-              onClick={() => {
-                clearActionMessage();
-                setIsAddModalOpen(true);
-              }}
-              className="flex w-full items-center gap-2 border-t border-border px-4 py-3 text-sm font-bold text-primary"
+          {/* どちらかに文字が入っていれば表示する。 */}
+          {(actionError || actionMessage) && (
+            <div
+              // エラーがある場合はalert、メッセージのみの場合はstatusとして扱う
+              role={actionError ? "alert" : "status"}
+              className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold ${
+                actionError
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-orange-200 bg-orange-50 text-orange-700"
+              }`}
             >
-              <span className="flex size-6 items-center justify-center rounded-full bg-secondary">
-                <Plus size={14} aria-hidden="true" />
-              </span>
-              配送サイズを追加
-            </button>
-          </div>
-        </section>
+              {actionError ? (
+                <CircleAlert size={18} aria-hidden="true" />
+              ) : (
+                <CircleCheck size={18} aria-hidden="true" />
+              )}
+              {actionError || actionMessage}
+            </div>
+          )}
+        </div>
 
-        {/* どちらかに文字が入っていれば表示する。 */}
-        {(actionError || actionMessage) && (
-          <div
-            // エラーがある場合はalert、メッセージのみの場合はstatusとして扱う
-            role={actionError ? "alert" : "status"}
-            className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold ${
-              actionError
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-orange-200 bg-orange-50 text-orange-700"
-            }`}
-          >
-            {actionError ? (
-              <CircleAlert size={18} aria-hidden="true" />
-            ) : (
-              <CircleCheck size={18} aria-hidden="true" />
-            )}
-            {actionError || actionMessage}
-          </div>
+        {/* 配送サイズ追加・編集モーダル */}
+        {isAddModalOpen && (
+          <DeliveryTypeModal
+            key="add-delivery-type"
+            title="配送サイズを追加"
+            submitLabel="追加する"
+            onClose={() => setIsAddModalOpen(false)}
+            onSubmit={handleCreate}
+          />
         )}
-      </div>
 
-      {/* 配送サイズ追加・編集モーダル */}
-      {isAddModalOpen && (
-        <DeliveryTypeModal
-          key="add-delivery-type"
-          title="配送サイズを追加"
-          submitLabel="追加する"
-          onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleCreate}
-        />
-      )}
-
-      {/* 配送サイズ編集モーダル */}
-      {editingDeliveryType && (
-        <DeliveryTypeModal
-          key={editingDeliveryType.id}
-          title="配送サイズを編集"
-          submitLabel="変更を保存"
-          initialValues={{
-            name: editingDeliveryType.name,
-            currentUnitPrice: editingDeliveryType.currentUnitPrice,
-          }}
-          onClose={() => setEditingDeliveryType(null)}
-          onSubmit={(values) => handleUpdate(editingDeliveryType.id, values)}
-        />
-      )}
-    </main>
+        {/* 配送サイズ編集モーダル */}
+        {editingDeliveryType && (
+          <DeliveryTypeModal
+            key={editingDeliveryType.id}
+            title="配送サイズを編集"
+            submitLabel="変更を保存"
+            initialValues={{
+              name: editingDeliveryType.name,
+              currentUnitPrice: editingDeliveryType.currentUnitPrice,
+            }}
+            onClose={() => setEditingDeliveryType(null)}
+            onSubmit={(values) => handleUpdate(editingDeliveryType.id, values)}
+          />
+        )}
+      </main>
+      <MobileNavigation />
+    </>
   );
 }
