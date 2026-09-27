@@ -89,10 +89,15 @@ export async function GET(request: NextRequest) {
       (day) => day.totalRevenue > 0,
     ).length;
 
+    const averageDay = operatingDays > 0
+      ? monthlyRevenue / operatingDays
+      : 0;
+
     //  日付と総収益だけ返す
     return NextResponse.json({
       monthlyRevenue,
       operatingDays,
+      averageDay,
       days: calendarDays,
     });
   } catch (error) {

@@ -6,5 +6,6 @@ export type CalendarDay = {
 export type CalendarResponse = {
   monthlyRevenue: number;
   operatingDays: number;
+  averageDay: number;
   days: CalendarDay[];
 };

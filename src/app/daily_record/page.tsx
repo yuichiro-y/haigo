@@ -11,12 +11,17 @@ import {
 import { authFetch } from "@/app/_lib/api/authFetch";
 import { DailyRecordForm } from "../_components/DailyRecord/DailyRecordForm";
 import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
+import { useSearchParams } from "next/navigation";
 
 export default function DailyRecordPage() {
   // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
   const today = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Tokyo",
   }).format(new Date());
+
+  const searchParams = useSearchParams();
+  const dateFromUrl = searchParams.get("date");
+  const targetDate = dateFromUrl ?? today;
 
   // 今日の入力欄に表示する、使用中の配送サイズだけを取得する
   const {
@@ -31,7 +36,7 @@ export default function DailyRecordPage() {
     error: dailyRecordError,
     isLoading: isDailyRecordLoading,
     mutate: mutateDailyRecord,
-  } = useFetch<DailyRecord | null>(`/api/daily_records?date=${today}`);
+  } = useFetch<DailyRecord | null>(`/api/daily_records?date=${targetDate}`);
 
   // 保存・更新の結果を画面へ表示するために保持する
   const [actionError, setActionError] = useState("");
@@ -137,7 +142,7 @@ export default function DailyRecordPage() {
 
     return handleCreate({
       ...values,
-      workDate: today,
+      workDate: targetDate,
     });
   };
 
@@ -145,10 +150,13 @@ export default function DailyRecordPage() {
     <>
       <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 md:pb-10 lg:py-10">
         <div className="mx-auto w-full max-w-[470px]">
-          <header className="mb-3 border-b border-border py-3 text-center">
-            <h1 className="text-sm font-bold">今日の記録</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">{today}</p>
-          </header>
+              <header className="mb-3 border-b border-border py-3 text-center">
+                {targetDate === today
+                  ? <h1 className="text-sm font-bold">今日の記録</h1>
+                  : <h1 className="text-sm font-bold">配達記録</h1>
+                }
+                  <p className="mt-0.5 text-xs text-muted-foreground">{targetDate}</p>
+              </header>
 
           {actionError && (
             <p

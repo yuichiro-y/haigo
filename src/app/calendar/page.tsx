@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MobileNavigation } from "../_components/Navigation/MobileNavigation";
+import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   addMonths,
@@ -9,15 +9,21 @@ import {
   endOfMonth,
   endOfWeek,
   format,
+  isSameMonth,
+  isToday,
   startOfMonth,
   startOfWeek,
   subMonths,
 } from "date-fns";
 import { CalendarResponse } from "@/app/_types/calendar";
 import { useFetch } from "@/app/_hooks/useFetch";
+import { CalendarSummaryCard } from "@/app/_components/Calendar/CalendarSummaryCard";
+import { DailyRecordDetail } from "@/app/_components/Calendar/DailyRecordDetail";
 
 export default function CalendarPage() {
   const [displayMonth, setDisplayMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const {
     data: calendarData,
     error: calendarDaysError,
@@ -89,75 +95,123 @@ export default function CalendarPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 md:pb-10 lg:py-10">
-        <div className="mx-auto w-full max-w-[470px]">
-          <header className="flex justify-between my-3 border-b border-border py-3 text-center">
+      <main className="min-h-screen bg-background px-3 pt-2 pb-28 sm:px-6 sm:pt-6 md:pb-10 lg:py-10">
+        <div className="mx-auto w-full max-w-[734px]">
+          <header className="mb-3 flex h-14 items-center justify-between text-center sm:mb-4">
             <button
               type="button"
               onClick={handlePreviousMonth}
-              className="mr-10"
+              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <ChevronLeft size={24} strokeWidth={2} />
             </button>
 
-            <p className="font-bold text-foreground">
+            <p className="text-base font-bold text-foreground sm:text-lg">
               {format(displayMonth, "yyyy 年 M 月")}
             </p>
 
-            <button type="button" onClick={handleNextMonth} className="ml-10">
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
               <ChevronRight size={24} strokeWidth={2} />
             </button>
           </header>
 
           {/* サマリー */}
-          <div className="flex justify-between mb-2">
-            <div className="text-center p-2">
-              <p>¥ {calendarData.monthlyRevenue.toLocaleString()}</p>
-              <p>月間収益</p>
-            </div>
-            <div className="text-center p-2">
-              <p>{calendarData.operatingDays} 日</p>
-              <p>稼働日数</p>
-            </div>
+          <div className="mb-4 grid grid-cols-3 gap-3 [&>div:first-child>p:first-child]:text-primary">
+            <CalendarSummaryCard
+              value={`¥${calendarData.monthlyRevenue.toLocaleString()}`}
+              label="月間収益"
+            />
+            <CalendarSummaryCard
+              value={`¥${calendarData.averageDay.toLocaleString()}`}
+              label="1日平均"
+            />
+            <CalendarSummaryCard
+              value={`${calendarData.operatingDays}日`}
+              label="稼働日数"
+            />
           </div>
 
           {/* カレンダー */}
-          <table className="w-full table-fixed">
-            <thead>
-              <tr>
-                {weekDays.map((weekDay) => (
-                  <th key={weekDay}>{weekDay}</th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {calendarWeeks.map((week, weekIndex) => (
-                <tr key={weekIndex}>
-                  {week.map((day) => {
-                    const datekey = format(day, "yyyy-MM-dd");
-
-                    const record = calendarData.days.find(
-                      (d) => d.workDate === datekey,
-                    );
-                    return (
-                      <td
-                        key={day.toISOString()}
-                        className="p-2 border border-border"
-                      >
-                        <p>{format(day, "d")}</p>
-                        {record && (
-                          <p className="text-[11px]">
-                            ¥{record.totalRevenue.toLocaleString()}
-                          </p>
-                        )}
-                      </td>
-                    );
-                  })}
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <table className="w-full table-fixed border-separate border-spacing-0">
+              <thead className="bg-muted/40">
+                <tr>
+                  {weekDays.map((weekDay) => (
+                    <th
+                      key={weekDay}
+                      className={`h-9 text-xs font-medium sm:h-10 ${
+                        weekDay === "日" ? "text-destructive" : ""
+                      } ${weekDay === "土" ? "text-[var(--chart-blue)]" : ""}`}
+                    >
+                      {weekDay}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {calendarWeeks.map((week, weekIndex) => (
+                  <tr key={weekIndex}>
+                    {week.map((day) => {
+                      const datekey = format(day, "yyyy-MM-dd");
+                      const isDisplayedMonth = isSameMonth(day, displayMonth);
+                      const isCurrentDay = isToday(day);
+                      const record = calendarData.days.find(
+                        (d) => d.workDate === datekey,
+                      );
+
+                      return (
+                        <td
+                          key={day.toISOString()}
+                          className={`border-t border-r border-border p-0 align-top last:border-r-0 ${
+                            isDisplayedMonth
+                              ? "text-foreground"
+                              : "bg-muted/30 text-muted-foreground/40"
+                          } ${
+                            isCurrentDay && isDisplayedMonth
+                              ? "bg-secondary"
+                              : ""
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDate(datekey);
+                              setIsOpen(true);
+                            }}
+                            className="flex min-h-20 w-full flex-col items-start gap-1 px-1 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:min-h-24 sm:px-3 sm:py-3"
+                          >
+                            <p
+                              className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:text-sm ${isCurrentDay && isDisplayedMonth ? "bg-primary text-primary-foreground" : ""}`}
+                            >
+                              {format(day, "d")}
+                            </p>
+                            {isDisplayedMonth && record && (
+                              <p className="w-full text-[10px] leading-tight font-medium break-all text-muted-foreground tabular-nums sm:text-xs">
+                                ¥{record.totalRevenue.toLocaleString()}
+                              </p>
+                            )}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedDate && (
+            <DailyRecordDetail
+              date={selectedDate}
+              isOpen={isOpen}
+              onClose={() => setIsOpen(false)}
+            />
+          )}
         </div>
       </main>
 
