@@ -3,7 +3,7 @@
 import { useFetch } from "@/app/_hooks/useFetch";
 import { DeliveryType } from "@/app/_lib/validation/deliveryType";
 import { DailyRecord } from "@/app/_lib/validation/dailyRecord";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
   CreateDailyRecordInput,
   UpdateDailyRecordInput,
@@ -13,7 +13,7 @@ import { DailyRecordForm } from "../_components/DailyRecord/DailyRecordForm";
 import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
 import { useSearchParams } from "next/navigation";
 
-export default function DailyRecordPage() {
+function DailyRecordContent() {
   // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
   const today = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Tokyo",
@@ -185,5 +185,13 @@ export default function DailyRecordPage() {
       </main>
       <MobileNavigation />
     </>
+  );
+}
+
+export default function DailyRecordPage() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <DailyRecordContent />
+    </Suspense>
   );
 }

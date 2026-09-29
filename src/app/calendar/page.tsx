@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -11,6 +11,7 @@ import {
   format,
   isSameMonth,
   isToday,
+  parseISO,
   startOfMonth,
   startOfWeek,
   subMonths,
@@ -19,9 +20,15 @@ import { CalendarResponse } from "@/app/_types/calendar";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { CalendarSummaryCard } from "@/app/_components/Calendar/CalendarSummaryCard";
 import { DailyRecordDetail } from "@/app/_components/Calendar/DailyRecordDetail";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function CalendarPage() {
-  const [displayMonth, setDisplayMonth] = useState(new Date());
+function CalendarContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const monthFromUrl = searchParams.get("month");
+  const displayMonth = monthFromUrl
+    ? parseISO(`${monthFromUrl}-01`)
+    : new Date();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const {
@@ -86,11 +93,21 @@ export default function CalendarPage() {
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
 
   const handlePreviousMonth = () => {
-    setDisplayMonth((c) => subMonths(c, 1));
+    const previousMonth = subMonths(displayMonth, 1);
+
+    router.replace(
+      `/calendar?month=${format(previousMonth, "yyyy-MM")}`,
+      { scroll: false },
+    );
   };
 
   const handleNextMonth = () => {
-    setDisplayMonth((c) => addMonths(c, 1));
+    const nextMonth = addMonths(displayMonth, 1);
+
+    router.replace(
+      `/calendar?month=${format(nextMonth, "yyyy-MM")}`,
+      { scroll: false },
+    );
   };
 
   return (
@@ -126,7 +143,7 @@ export default function CalendarPage() {
               label="月間収益"
             />
             <CalendarSummaryCard
-              value={`¥${calendarData.averageDay.toLocaleString()}`}
+              value={`¥${Math.floor(calendarData.averageDay).toLocaleString('ja-JP')}`}
               label="1日平均"
             />
             <CalendarSummaryCard
@@ -217,5 +234,13 @@ export default function CalendarPage() {
 
       <MobileNavigation />
     </>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <CalendarContent />
+    </Suspense>
   );
 }
