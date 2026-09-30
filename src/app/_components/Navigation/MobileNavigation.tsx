@@ -19,7 +19,7 @@ const navigationItems = [
   },
   {
     label: "カレンダー",
-    href: null,
+    href: "/calendar",
     icon: CalendarDays,
     kind: "normal",
   },
