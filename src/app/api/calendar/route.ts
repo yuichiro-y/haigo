@@ -1,5 +1,6 @@
 import { getCurrentAppUser } from "@/app/_lib/auth/getCurrentAppUser";
 import { prisma } from "@/app/_lib/prisma/prisma";
+import { CalendarResponse } from "@/app/_types/calendar";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -94,12 +95,14 @@ export async function GET(request: NextRequest) {
       : 0;
 
     //  日付と総収益だけ返す
-    return NextResponse.json({
+    const response: CalendarResponse = {
       monthlyRevenue,
       operatingDays,
       averageDay,
       days: calendarDays,
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("カレンダー取得エラー", error);
 
