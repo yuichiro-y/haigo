@@ -13,6 +13,7 @@ export type StatisticsResponse = {
     [deliveryTypeId: string]: {
       name: string;
       quantity: number;
+      revenue: number;
     }
   };
 };

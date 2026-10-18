@@ -31,7 +31,7 @@ const navigationItems = [
   },
   {
     label: "統計",
-    href: null,
+    href: "/statistics",
     icon: ChartNoAxesColumnIncreasing,
     kind: "normal",
   },

@@ -106,25 +106,29 @@ export async function GET(request: NextRequest) {
       ? monthlyRevenue / operatingDays
       : 0;
 
+    // サイズ別配達数
     const deliveryTypesTotal = dailyRecords
       .flatMap((record) => record.dailyRecordItems)
-      .reduce<Record<string,{name: string, quantity: number}>>((total, item) => {
+      .reduce<Record<string,{name: string, quantity: number, revenue: number}>>((total, item) => {
         const id = item.deliveryTypeId;
         const existing = total[id];
 
         if (existing) {
           // 集計済みなら、今回の個数を足す
           existing.quantity += item.quantity;
+          existing.revenue += item.quantity * item.unitPriceSnapshot;
         } else {
           // 初登場なら、集計欄を作る
           total[id] = {
             name: item.deliveryType.name,
             quantity: item.quantity,
+            revenue: item.quantity * item.unitPriceSnapshot,
           };
         }
         return total;
       }, {});
 
+    // 最高日収益
     const highestRevenueDay = statisticsDays.reduce<
       StatisticsDay | null
     >((maxDay, nextDay) => {
