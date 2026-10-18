@@ -114,7 +114,7 @@ function CalendarContent() {
     <>
       <main className="min-h-screen bg-background px-3 pt-2 pb-28 sm:px-6 sm:pt-6 md:pb-10 lg:py-10">
         <div className="mx-auto w-full max-w-[734px]">
-          <header className="mb-3 flex h-14 items-center justify-between text-center sm:mb-4">
+          <header className="my-2 flex h-8 items-center justify-between text-center sm:mb-4">
             <button
               type="button"
               onClick={handlePreviousMonth}
@@ -137,7 +137,7 @@ function CalendarContent() {
           </header>
 
           {/* サマリー */}
-          <div className="mb-4 grid grid-cols-3 gap-3 [&>div:first-child>p:first-child]:text-primary">
+          <div className="mb-2 grid grid-cols-3 gap-3 [&>div:first-child>p:nth-child(2)]:text-primary">
             <CalendarSummaryCard
               value={`¥${calendarData.monthlyRevenue.toLocaleString()}`}
               label="月間収益"
