@@ -40,7 +40,7 @@ const authContent = {
 };
 
 const syncAppUser = async (accessToken: string) => {
-  try {  
+  try {
     const response = await fetch("/api/users", {
       method: "POST",
       headers: {
@@ -51,7 +51,7 @@ const syncAppUser = async (accessToken: string) => {
     if (!response.ok) {
       return false;
     }
-    
+
     return true;
     } catch (error) {
       console.error("ユーザー登録に失敗しました:", error);
@@ -67,16 +67,17 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
   const {
     register,
     handleSubmit,
-    watch,
+    getValues,
     setError,
     clearErrors,
-    formState:{ errors, isSubmitting },
+    formState:{ errors, isSubmitting, isReady },
   } = useForm<AuthFormValues>({
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
   const onSubmit = async (values: AuthFormValues) => {
     setSubmitSuccess("");
     clearErrors("root.auth");
@@ -88,7 +89,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
         options: {
           emailRedirectTo:
             `${process.env.NEXT_PUBLIC_APP_URL}/login`,
-        },        
+        },
       });
 
       if (error) {
@@ -117,7 +118,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           type: "server",
           message: "ユーザー情報の登録に失敗しました",
         });
-        
+
         return;
       }
 
@@ -142,10 +143,10 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
       const accessToken = data.session?.access_token;
       if (!accessToken) {
         console.log("ログインセッションを取得できませんでした");
-        
+
         return;
       }
-      
+
       const syncSucceeded = await syncAppUser(accessToken);
 
       if (!syncSucceeded) {
@@ -158,7 +159,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
       }
 
       console.log("ログイン成功");
-      router.replace("/");
+      router.replace("/daily_record");
     }
   }
 
@@ -172,7 +173,8 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           <p className="text-[#6B7280]">{content.description}</p>
         </div>
 
-        <form 
+        <form
+          method="post"
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-5 mb-5"
         >
@@ -187,7 +189,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                 aria-hidden="true"
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
-                <input 
+                <input
                   id="email"
                   type="email"
                   disabled={isSubmitting}
@@ -197,21 +199,21 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                   className="left-3 pl-10 py-3 pr-3 block w-full rounded-xl border border-border bg-input-background  text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   placeholder="example@company.com"
                 />
-                </div>  
+                </div>
               </div>
 
               {errors.email && (
                 <p className="mt-1 text-sm text-red-500">
                   {errors.email.message}
                 </p>
-              )}              
+              )}
 
               <div>
                 <label htmlFor="password" className="font-bold text-sm">
                   パスワード
                 </label>
                 <div className="flex w-full items-center rounded-xl border border-border bg-input-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                  <Lock 
+                  <Lock
                     size={18}
                     aria-hidden="true"
                     className="ml-3 shrink-0 text-gray-400"
@@ -245,7 +247,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                   <p className="mt-1 text-sm text-red-500">
                     {errors.password.message}
                   </p>
-                )}              
+                )}
 
               { mode === "signUp" && (
                 <>
@@ -256,19 +258,19 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                       </label>
 
                       <div className="relative">
-                        <Lock 
+                        <Lock
                           size={18}
                           aria-hidden="true"
                           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                         />
-                        <input 
+                        <input
                           id="passwordConfirm"
                           type="password"
                           disabled={isSubmitting}
                           {...register("passwordConfirm", {
                             required: "確認用パスワードを入力してください",
-                            validate: (value) => 
-                              value === watch("password") ||
+                            validate: (value) =>
+                              value === getValues("password") ||
                               "パスワードが一致しません",
                           })}
                           className="left-3 pl-10 py-3 pr-3 block w-full rounded-xl border border-border bg-input-background text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -281,7 +283,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                       <p className="mt-1 text-sm text-red-500">
                         {errors.passwordConfirm.message}
                       </p>
-                    )}                    
+                    )}
 
                     <p className="text-xs text-[#6B7280] p-3">
                       登録することで、
@@ -293,7 +295,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                   </div>
                 </>
               )}
-          </div> 
+          </div>
 
           {errors.root?.auth?.message && (
             <p
@@ -324,11 +326,11 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                 </p>
               </div>
             </div>
-          )}          
+          )}
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={!isReady || isSubmitting}
             className="text-[#FFFFFF] bg-[#F97316] font-bold cursor-pointer rounded-xl block w-full p-3 disabled:cursor-not-allowed disabled:opacity-50">
             {isSubmitting ? "処理中..." : content.submitLabel}
           </button>

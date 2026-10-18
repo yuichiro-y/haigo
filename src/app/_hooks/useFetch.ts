@@ -1,8 +1,18 @@
 import useSWR from "swr";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSupabaseSession } from "./useSupabaseSession";
 
 export const useFetch = <T>(endpoint: string) => {
   const { token, isLoading: isSessionLoading } = useSupabaseSession();
+  const router = useRouter();
+
+  // 認証確認後に未ログインなら、空白画面にせずログイン画面へ戻す。
+  useEffect(() => {
+    if (!isSessionLoading && !token) {
+      router.replace("/login");
+    }
+  }, [isSessionLoading, token, router]);
 
   const fetcher = async (url: string): Promise<T> => {
     const res = await fetch(url, {
@@ -29,7 +39,7 @@ export const useFetch = <T>(endpoint: string) => {
   return {
     data,
     error,
-    isLoading: isSessionLoading || isFetchLoading,
+    isLoading: isSessionLoading || !token || isFetchLoading,
     mutate,
   };
 };
