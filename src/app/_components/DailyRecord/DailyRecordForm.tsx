@@ -165,6 +165,7 @@ export const DailyRecordForm = ({
                 min={0}
                 step={1}
                 inputMode="numeric"
+                onFocus={(event) => event.currentTarget.select()}
                 className={`w-24 bg-transparent px-3 py-2 text-center text-3xl font-bold outline-none disabled:opacity-50 ${
                   safeQuantity > 0 ? "text-primary" : "text-muted-foreground/30"
                 }
@@ -273,7 +274,7 @@ export const DailyRecordForm = ({
         />
       </div>
 
-      <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="mt-3 rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="space-y-1 text-xs text-muted-foreground">
           <p className="flex items-center justify-between">
             <span>配送売上</span>
