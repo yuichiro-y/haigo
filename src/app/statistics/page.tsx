@@ -7,8 +7,8 @@ import { StatisticsResponse } from "../_types/statistics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MobileNavigation } from "../_components/Navigation/MobileNavigation";
 import { Suspense } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DailyRevenueChart } from "../_components/Statistics/DailyRevenueChart";
+import { DateNavigationButton } from "../_components/Button/DateNavigationButton";
 
 function StatisticsContent() {
   const router = useRouter();
@@ -88,27 +88,20 @@ function StatisticsContent() {
       <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 sm:pt-6 md:pb-10 lg:py-5">
         <div className="mx-auto w-full max-w-[734px]">
           <header className="sticky top-0 z-20 -mx-3 px-3 mb-1 flex items-center justify-between border-b border-border bg-background text-center py-1 sm:mb-2 sm:mt-0 md:mb-3">
-            <button
-              type="button"
-              aria-label="前月の統計を表示"
+            <DateNavigationButton
+              direction="previous"
+              label="前月の統計を表示"
               onClick={handlePreviousMonth}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <ChevronLeft size={24} strokeWidth={2} />
-            </button>
+            />
+              <p className="text-base font-bold text-foreground sm:text-lg">
+                {format(displayMonth, "yyyy 年 M 月")}
+              </p>
 
-            <p className="text-base font-bold text-foreground sm:text-lg">
-              {format(displayMonth, "yyyy 年 M 月")}
-            </p>
-
-            <button
-              type="button"
-              aria-label="次月の統計を表示"
+            <DateNavigationButton
+              direction="next"
+              label="翌月の統計を表示"
               onClick={handleNextMonth}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <ChevronRight size={24} strokeWidth={2} />
-            </button>
+            />
           </header>
 
           {/* カード */}
@@ -126,7 +119,7 @@ function StatisticsContent() {
             <StatisticsSummaryCard
               label="最高日収益"
               value={data.highestRevenueDay
-                ? `¥${data.highestRevenueDay.totalRevenue.toLocaleString('ja-JP')}`
+                ? `¥${Math.floor(data.highestRevenueDay.totalRevenue).toLocaleString('ja-JP')}`
                 : "記録なし"
               }
               sub={data.highestRevenueDay

@@ -14,7 +14,7 @@ import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation"
 import { useRouter, useSearchParams } from "next/navigation";
 import { addDays, format, parseISO, subDays } from "date-fns";
 import { ja } from "date-fns/locale"
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DateNavigationButton } from "../_components/Button/DateNavigationButton";
 
 function DailyRecordContent() {
   // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
@@ -175,14 +175,11 @@ function DailyRecordContent() {
       <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 md:pb-10 lg:py-10">
         <div className="mx-auto w-full max-w-[470px]">
           <header className="sticky top-0 z-20 -mx-3 px-3 mb-3 flex items-center justify-between border-b border-border bg-background py-3">
-            <button
-              type="button"
-              aria-label="前日の記録を表示"
+            <DateNavigationButton
+              direction="previous"
+              label="前日の記録を表示"
               onClick={handlePreviousDay}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-card"
-            >
-              <ChevronLeft size={24} />
-            </button>
+            />
 
             <div className="text-center">
               <h1 className="text-sm font-bold">
@@ -197,14 +194,11 @@ function DailyRecordContent() {
               </p>
             </div>
 
-            <button
-              type="button"
-              aria-label="翌日の記録を表示"
+            <DateNavigationButton
+              direction="next"
+              label="翌日の記録を表示"
               onClick={handleNextDay}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-card"
-            >
-              <ChevronRight size={24} />
-            </button>
+            />
           </header>
 
           {actionError && (
