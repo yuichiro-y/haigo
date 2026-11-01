@@ -11,7 +11,10 @@ import {
 import { authFetch } from "@/app/_lib/api/authFetch";
 import { DailyRecordForm } from "../_components/DailyRecord/DailyRecordForm";
 import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { addDays, format, parseISO, subDays } from "date-fns";
+import { ja } from "date-fns/locale"
+import { DateNavigationButton } from "../_components/Button/DateNavigationButton";
 
 function DailyRecordContent() {
   // 日本時間の今日を、日次記録APIが受け取るYYYY-MM-DD形式にする
@@ -19,6 +22,7 @@ function DailyRecordContent() {
     timeZone: "Asia/Tokyo",
   }).format(new Date());
 
+  const router = useRouter();
   const searchParams = useSearchParams();
   const dateFromUrl = searchParams.get("date");
   const targetDate = dateFromUrl ?? today;
@@ -146,17 +150,56 @@ function DailyRecordContent() {
     });
   };
 
+  const handlePreviousDay = () => {
+    const previousDay = subDays(parseISO(targetDate), 1);
+
+    clearActionMessage();
+    router.replace(
+      `/daily_record?date=${format(previousDay, "yyyy-MM-dd")}`,
+      { scroll: true },
+    );
+  };
+
+  const handleNextDay = () => {
+    const nextDay = addDays(parseISO(targetDate), 1);
+
+    clearActionMessage();
+    router.replace(
+      `/daily_record?date=${format(nextDay, "yyyy-MM-dd")}`,
+      { scroll: true },
+    );
+  };
+
   return (
     <>
       <main className="min-h-screen bg-background px-3 pb-28 sm:px-6 md:pb-10 lg:py-10">
         <div className="mx-auto w-full max-w-[470px]">
-              <header className="mb-3 border-b border-border py-3 text-center">
-                {targetDate === today
-                  ? <h1 className="text-sm font-bold">今日の記録</h1>
-                  : <h1 className="text-sm font-bold">配達記録</h1>
-                }
-                  <p className="mt-0.5 text-xs text-muted-foreground">{targetDate}</p>
-              </header>
+          <header className="sticky top-0 z-20 -mx-3 px-3 mb-3 flex items-center justify-between border-b border-border bg-background py-3">
+            <DateNavigationButton
+              direction="previous"
+              label="前日の記録を表示"
+              onClick={handlePreviousDay}
+            />
+
+            <div className="text-center">
+              <h1 className="text-sm font-bold">
+                {targetDate === today ? "今日の記録" : "配達履歴"}
+              </h1>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {format(
+                  parseISO(targetDate),
+                  targetDate === today ? "yyyy年M月d日" : "yyyy年M月d日（EEE）",
+                  { locale: ja },
+                )}
+              </p>
+            </div>
+
+            <DateNavigationButton
+              direction="next"
+              label="翌日の記録を表示"
+              onClick={handleNextDay}
+            />
+          </header>
 
           {actionError && (
             <p
@@ -177,6 +220,7 @@ function DailyRecordContent() {
           )}
 
           <DailyRecordForm
+            key={targetDate}
             deliveryTypes={deliveryTypes}
             dailyRecord={dailyRecord}
             onSave={handleSave}

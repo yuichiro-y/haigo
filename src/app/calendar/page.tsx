@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { MobileNavigation } from "@/app/_components/Navigation/MobileNavigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   addMonths,
   eachDayOfInterval,
@@ -21,6 +20,7 @@ import { useFetch } from "@/app/_hooks/useFetch";
 import { CalendarSummaryCard } from "@/app/_components/Calendar/CalendarSummaryCard";
 import { DailyRecordDetail } from "@/app/_components/Calendar/DailyRecordDetail";
 import { useRouter, useSearchParams } from "next/navigation";
+import { DateNavigationButton } from "../_components/Button/DateNavigationButton";
 
 function CalendarContent() {
   const router = useRouter();
@@ -114,30 +114,25 @@ function CalendarContent() {
     <>
       <main className="min-h-screen bg-background px-3 pt-2 pb-28 sm:px-6 sm:pt-6 md:pb-10 lg:py-10">
         <div className="mx-auto w-full max-w-[734px]">
-          <header className="mb-3 flex h-14 items-center justify-between text-center sm:mb-4">
-            <button
-              type="button"
+          <header className="my-2 flex h-8 items-center justify-between text-center sm:mb-4">
+            <DateNavigationButton
+              direction="previous"
+              label="前月のカレンダーを表示"
               onClick={handlePreviousMonth}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <ChevronLeft size={24} strokeWidth={2} />
-            </button>
-
+            />
             <p className="text-base font-bold text-foreground sm:text-lg">
               {format(displayMonth, "yyyy 年 M 月")}
             </p>
 
-            <button
-              type="button"
+            <DateNavigationButton
+              direction="next"
+              label="翌月のカレンダーを表示"
               onClick={handleNextMonth}
-              className="flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <ChevronRight size={24} strokeWidth={2} />
-            </button>
+            />
           </header>
 
           {/* サマリー */}
-          <div className="mb-4 grid grid-cols-3 gap-3 [&>div:first-child>p:first-child]:text-primary">
+          <div className="mb-2 grid grid-cols-3 gap-1 [&>div:first-child>p:nth-child(2)]:text-primary">
             <CalendarSummaryCard
               value={`¥${calendarData.monthlyRevenue.toLocaleString()}`}
               label="月間収益"
